@@ -61,13 +61,16 @@ src/
   result.py        # Result : sortie commune à tous les niveaux
   tracing.py       # trace JSONL par exécution dans traces/
   llm.py           # client compatible OpenAI + niveau 0
-  rag.py           # niveau 1 (à faire)
+  rag.py           # niveau 1 : découpage fait, recherche et réponse à faire
   agent.py         # niveau 2, boucle écrite à la main (faite et testée)
   tools.py         # outils + schémas JSON + effet + règles métier (lecture à faire)
   metrics.py       # Recall@k, MRR, mots clés, état final, pass^k
   app.py           # interface Streamlit avec validation des actions
 tests/             # pytest avec faux LLM, sans API
-data/corpus/       # documents du RAG
+scripts/
+  build_corpus.py  # Wikipédia (API) + PDF IFAB -> data/corpus/, manifest.json
+GAUTIER.md         # tâches du binôme
+data/corpus/       # wiki/ versionné (CC BY-SA), ifab/ non versionné
 results/           # raw_level{n}.jsonl, table.md
 traces/
 ```
@@ -81,7 +84,8 @@ traces/
 ## Avancement
 - [x] Semaine 1 : squelette, protocole, boucle de l'agent testée, niveau 0 codé
 - [x] Semaine 1 : décisions techniques
-- [ ] Semaine 1 : corpus, 40 cas de test, premières mesures du niveau 0
+- [x] Semaine 1 : script du corpus et découpage (testés hors ligne)
+- [ ] Semaine 1 : lancer le corpus, 40 cas de test, premières mesures du niveau 0
 - [ ] Semaine 2 : RAG
 - [ ] Semaine 3 : outils StatsBomb, pass^3
 - [ ] Semaine 4 : extension, rapport, vidéo
@@ -98,7 +102,8 @@ traces/
 - Corpus RAG : lois du jeu IFAB en français, téléchargées par un script, non commitées (licence) ; Wikipédia en complément.
 - Modèle d'embeddings : à trancher entre multilingual-e5-small et bge-m3, dense seul ou hybride + BM25, sur Recall@5 et MRR des 20 cas doc.
 - Extension niveau 3 : à choisir d'après un défaut mesuré au niveau 2.
-- Répartition du travail entre les deux membres : 
+- Répartition : Simon fait le corpus, le RAG, les 20 cas doc et les 5 cas absents. Gautier fait les données StatsBomb, les outils, les règles métier, les 10 tâches, les 5 cas ambigus et le benchmark LLM (détail dans GAUTIER.md). Ensemble : l'extension, les échecs, le rapport et la vidéo.
+- Rapport d'avant-match : identifié par l'affiche, fichier `reports/<domicile>-vs-<exterieur>.json` (noms StatsBomb en anglais).
 
 ## Conventions de travail
 - Python 3.11 ou plus, environnement virtuel `.venv`.

@@ -7,6 +7,10 @@ statsbombpy>=1.13
 pandas>=2.2
 matplotlib>=3.8
 
+# Corpus
+requests>=2.31
+pypdf>=4.0
+
 # RAG (choix du modèle d'embeddings à confirmer par une mesure)
 sentence-transformers>=3.0
 rank-bm25>=0.2.2

@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import json
+import re
+import unicodedata
 from dataclasses import dataclass
 from typing import Any, Callable, Literal
 
@@ -47,23 +49,30 @@ def plot_shots(match_id: int, team: str) -> str:
 
 # Outil qui agit -----------------------------------------------------------------
 
-def publish_report(match_id: int, title: str, content: str) -> dict[str, Any]:
-    """Publie le rapport d'avant-match (écrit dans STATE_DIR/reports). Irréversible."""
-    out = config.state_dir() / "reports"
-    out.mkdir(parents=True, exist_ok=True)
-    path = out / f"{match_id}.json"
-    path.write_text(json.dumps({"match_id": match_id, "title": title, "content": content},
-                               ensure_ascii=False, indent=2), encoding="utf-8")
+def report_path(home_team: str, away_team: str):
+    """Un rapport par affiche : STATE_DIR/reports/<domicile>-vs-<exterieur>.json"""
+    slug = lambda s: re.sub(r"[^a-z0-9]+", "-", unicodedata.normalize("NFKD", s.lower())  # noqa: E731
+                            .encode("ascii", "ignore").decode()).strip("-")
+    return config.state_dir() / "reports" / f"{slug(home_team)}-vs-{slug(away_team)}.json"
+
+
+def publish_report(home_team: str, away_team: str, title: str, content: str) -> dict[str, Any]:
+    """Publie le rapport d'avant-match d'une affiche. Irréversible."""
+    path = report_path(home_team, away_team)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps({"home_team": home_team, "away_team": away_team, "title": title,
+                                "content": content}, ensure_ascii=False, indent=2), encoding="utf-8")
     return {"published": True, "path": str(path)}
 
 
 def check_publish_report(args: dict[str, Any]) -> list[str]:
     errors = []
-    if (config.state_dir() / "reports" / f"{args.get('match_id')}.json").exists():
-        errors.append("Un rapport est déjà publié pour ce match.")
+    if report_path(args.get("home_team", ""), args.get("away_team", "")).exists():
+        errors.append("Un rapport est déjà publié pour cette affiche.")
     if len(args.get("content", "").strip()) < 200:
         errors.append("Rapport trop court (200 caractères minimum).")
-    # À compléter : match existant et pas encore joué, chiffres cités présents dans les données...
+    # À compléter (Gautier) : équipes présentes dans les données, équipes différentes,
+    # chiffres cités présents dans les résultats d'outils...
     return errors
 
 
@@ -85,9 +94,9 @@ REGISTRY: dict[str, Tool] = {t.name: t for t in [
          {"type": "object", "properties": {"match_id": {"type": "integer"}, "team": {"type": "string"}},
           "required": ["match_id", "team"], "additionalProperties": False},
          "compute", plot_shots),
-    Tool("publish_report", "Publie le rapport d'avant-match. Action irréversible, confirmation requise.",
-         {"type": "object", "properties": {"match_id": {"type": "integer"}, "title": {"type": "string"},
-                                           "content": {"type": "string"}},
-          "required": ["match_id", "title", "content"], "additionalProperties": False},
+    Tool("publish_report", "Publie le rapport d'avant-match d'une affiche. Action irréversible, confirmation requise.",
+         {"type": "object", "properties": {"home_team": {"type": "string"}, "away_team": {"type": "string"},
+                                           "title": {"type": "string"}, "content": {"type": "string"}},
+          "required": ["home_team", "away_team", "title", "content"], "additionalProperties": False},
          "irreversible", publish_report, check_publish_report),
 ]}

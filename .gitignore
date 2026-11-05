@@ -11,6 +11,7 @@ __pycache__/
 data/cache/
 data/index/
 data/state/
+data/corpus/ifab/
 
 # Traces : garder le dossier, les traces de démo sont ajoutées à la main
 traces/*.jsonl

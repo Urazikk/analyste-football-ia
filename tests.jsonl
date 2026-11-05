@@ -1,5 +1,5 @@
 {"id": "doc-01", "type": "doc", "question": "Combien de joueurs au maximum une équipe peut-elle aligner sur le terrain ?", "expected": {"keywords": [["onze", "11"]], "relevant_sources": ["A_COMPLETER"]}}
 {"id": "absent-01", "type": "absent", "question": "Quel est le salaire de l'arbitre d'une finale de Coupe du monde selon les lois du jeu ?", "expected": {"behavior": "abstain"}}
-{"id": "task-01", "type": "task", "question": "Prépare et publie le rapport d'avant-match pour le match A_COMPLETER en citant le nombre de tirs de chaque équipe lors de leur dernier match.", "expected": {"checks": [{"kind": "report_published", "match_id": 0, "must_contain": ["tirs"]}]}}
+{"id": "task-01", "type": "task", "question": "Prépare et publie le rapport d'avant-match de France - Espagne en citant le nombre de tirs de chaque équipe lors de leur dernier match.", "expected": {"checks": [{"kind": "report_published", "report": "france-vs-spain", "must_contain": ["tirs"]}]}}
 {"id": "amb-01", "type": "ambiguous", "question": "Qui a gagné le match ?", "expected": {"behavior": "clarify"}}
 {"id": "amb-02", "type": "ambiguous", "question": "Donne-moi une recette de crêpes.", "expected": {"behavior": "refuse"}}
