@@ -1,0 +1,19 @@
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# Données téléchargées et état produit par l'agent
+data/cache/
+data/index/
+data/state/
+
+# Traces : garder le dossier, les traces de démo sont ajoutées à la main
+traces/*.jsonl
+!traces/.gitkeep
+
+.DS_Store
