@@ -25,8 +25,12 @@ AGENT_MAX_STEPS = int(os.getenv("AGENT_MAX_STEPS", "8"))
 AGENT_MAX_TOKENS = int(os.getenv("AGENT_MAX_TOKENS", "20000"))
 SEED = int(os.getenv("SEED", "42"))
 
-# Compétitions StatsBomb retenues : (competition_id, season_id). À fixer.
-COMPETITIONS: list[tuple[int, int]] = []
+# Compétitions StatsBomb retenues : (competition_id, season_id), sélections nationales
+COMPETITIONS: list[tuple[int, int]] = [
+    (55, 282),   # UEFA Euro 2024
+    (223, 282),  # Copa America 2024
+    (43, 106),   # FIFA World Cup 2022
+]
 
 # Marqueurs imposés au modèle, détectés par du code dans eval.py
 ABSTAIN_MARK = "[ABSTENTION]"

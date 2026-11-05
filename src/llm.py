@@ -40,8 +40,7 @@ def chat(
 ) -> LLMResponse:
     """Un appel au modèle. Les outils sont au format OpenAI (type=function)."""
     kwargs: dict[str, Any] = {"model": config.LLM_MODEL, "messages": messages,
-                              "temperature": temperature, "max_tokens": max_tokens,
-                              "seed": config.SEED}
+                              "temperature": temperature, "max_tokens": max_tokens}
     if tools:
         kwargs["tools"] = tools
     t0 = time.perf_counter()

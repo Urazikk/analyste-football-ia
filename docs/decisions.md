@@ -5,10 +5,11 @@ Chaque choix technique est consigné avec la mesure qui le justifie.
 | Date | Décision | Options comparées | Mesure | Résultat |
 |---|---|---|---|---|
 | 2026-11-05 | Squelette du dépôt, protocole de test fixé | | | |
-| | Compétition(s) StatsBomb | | | |
-| | Modèle LLM | | | |
-| | Modèle d'embeddings | | | |
+| 2026-11-05 | Compétitions : Euro 2024, Copa América 2024, CdM 2022 (sélections) | CdM 2022 seule, compétitions futures | aucune compétition à venir dans l'open data ; ~147 matchs donnent un historique par équipe | rapport d'avant-match sur une affiche donnée par l'utilisateur, à partir des derniers matchs disponibles |
+| 2026-11-05 | LLM provisoire : Mistral Small (poids ouverts, API) | Llama 70B via Groq, Ollama 7-8B | à mesurer : niveau 2, 10 tâches, succès, pass^3, tokens, latence (`eval.py --levels 2 --types task --model ...`) | |
+| | Modèle d'embeddings | multilingual-e5-small, bge-m3 | Recall@5 et MRR sur les 20 cas doc | |
 | | Taille des morceaux | | | |
-| | Dense seul ou hybride dense + BM25 | | | |
+| | Dense seul ou hybride dense + BM25 | dense, hybride | Recall@5 et MRR sur les 20 cas doc | |
 | | Seuil d'abstention | | | |
-| | Extension niveau 3 | | | |
+| 2026-11-05 | Corpus : lois du jeu IFAB (FR) téléchargées par script, non commitées (licence), + Wikipédia (CC BY-SA) | Wikipédia seul | | |
+| | Extension niveau 3 | | défaut mesuré au niveau 2 | |

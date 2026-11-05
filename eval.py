@@ -14,7 +14,7 @@ import tempfile
 from pathlib import Path
 from typing import Any, Callable
 
-from src import agent, llm, metrics, rag
+from src import agent, config, llm, metrics, rag
 from src.config import RESULTS_DIR, ROOT, SEED
 from src.result import Result
 
@@ -67,6 +67,7 @@ def summarize(level: int, rows: list[dict[str, Any]]) -> dict[str, Any]:
             tasks.setdefault(r["id"], []).append(bool(r["correct"]))
     return {
         "niveau": level,
+        "modèle": config.LLM_MODEL,
         "Recall@5": _mean([r.get("recall@5") for r in by("doc")]),
         "MRR": _mean([r.get("mrr") for r in by("doc")]),
         "Exactitude": _mean([r["correct"] for r in by("doc")]),
@@ -93,10 +94,17 @@ def main() -> None:
     p.add_argument("--levels", type=int, nargs="+", default=sorted(LEVELS))
     p.add_argument("--trials", type=int, default=3, help="essais par tâche multi-étapes (pass^k)")
     p.add_argument("--limit", type=int, default=None)
+    p.add_argument("--model", default=None, help="remplace LLM_MODEL (benchmark de modèles)")
+    p.add_argument("--base-url", default=None, help="remplace LLM_BASE_URL")
+    p.add_argument("--types", nargs="+", default=None, help="filtre sur le type de cas (doc, absent, task, ambiguous)")
     a = p.parse_args()
+    if a.model:
+        config.LLM_MODEL = a.model
+    if a.base_url:
+        config.LLM_BASE_URL = a.base_url
 
     random.seed(SEED)
-    tests = load_tests()[: a.limit]
+    tests = [c for c in load_tests() if not a.types or c["type"] in a.types][: a.limit]
     RESULTS_DIR.mkdir(exist_ok=True)
     summaries = []
     for level in a.levels:

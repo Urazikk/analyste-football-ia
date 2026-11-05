@@ -80,7 +80,8 @@ traces/
 
 ## Avancement
 - [x] Semaine 1 : squelette, protocole, boucle de l'agent testée, niveau 0 codé
-- [ ] Semaine 1 : décisions techniques, corpus, 40 cas de test, premières mesures du niveau 0
+- [x] Semaine 1 : décisions techniques
+- [ ] Semaine 1 : corpus, 40 cas de test, premières mesures du niveau 0
 - [ ] Semaine 2 : RAG
 - [ ] Semaine 3 : outils StatsBomb, pass^3
 - [ ] Semaine 4 : extension, rapport, vidéo
@@ -92,10 +93,11 @@ traces/
 - Semaine 4 (23 au 30 nov.) : extension, analyse des échecs, rapport, vidéo.
 
 ## Décisions à fixer (à compléter)
-- Compétition(s) StatsBomb retenue(s) : 
-- Modèle LLM (API ou modèle ouvert via Ollama) : 
-- Modèle d'embeddings : 
-- Extension niveau 3 : 
+- Compétitions StatsBomb : Euro 2024 (55, 282), Copa América 2024 (223, 282), CdM 2022 (43, 106). Pas de compétition future dans l'open data : le rapport d'avant-match porte sur une affiche donnée par l'utilisateur, à partir des derniers matchs disponibles des deux sélections.
+- Modèle LLM : Mistral Small via API compatible OpenAI (provisoire). Petit benchmark au niveau 2 (10 tâches) contre Llama 70B via Groq et un modèle Ollama, consigné dans docs/decisions.md. Le tableau des niveaux utilise un seul modèle.
+- Corpus RAG : lois du jeu IFAB en français, téléchargées par un script, non commitées (licence) ; Wikipédia en complément.
+- Modèle d'embeddings : à trancher entre multilingual-e5-small et bge-m3, dense seul ou hybride + BM25, sur Recall@5 et MRR des 20 cas doc.
+- Extension niveau 3 : à choisir d'après un défaut mesuré au niveau 2.
 - Répartition du travail entre les deux membres : 
 
 ## Conventions de travail
