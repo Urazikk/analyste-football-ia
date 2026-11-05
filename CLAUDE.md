@@ -103,3 +103,4 @@ traces/
 - Réponses et commentaires courts, code simple et lisible, type hints, tests avec pytest.
 - Tout choix technique doit être justifié par une mesure consignée.
 - Fixer les graines aléatoires pour la reproductibilité.
+- Commits : pas de ligne co-auteur Claude ni de lien de session.
