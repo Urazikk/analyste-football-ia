@@ -2,6 +2,10 @@
 
     python scripts/build_corpus.py                         # Wikipédia seul
     python scripts/build_corpus.py --ifab-pdf lois.pdf     # + lois du jeu IFAB (PDF FR téléchargé à la main)
+    python scripts/build_corpus.py --inspect lois.pdf      # diagnostic du PDF si le découpage échoue
+
+Lois IFAB : découpage par les signets du PDF (fiable même avec une mise en page en diapositives),
+sinon par le texte (« Loi N » en début de ligne).
 
 Sorties :
 - data/corpus/wiki/*.md  : articles Wikipédia (CC BY-SA 4.0), versionnés dans git avec leur révision
@@ -183,27 +187,141 @@ def law_sections(body: str) -> list[tuple[str, str]]:
     return [(t, re.sub(r"[ \t]+", " ", x).strip()) for t, x in sections if x.strip()]
 
 
-def pdf_text(path: Path) -> str:
-    from pypdf import PdfReader
+# Titres officiels des 17 lois, pour reconnaître un signet sans numéro
+LAW_TITLES = {
+    1: "terrain", 2: "ballon", 3: "joueurs", 4: "equipement", 5: "arbitre", 6: "autres arbitres",
+    7: "duree", 8: "coup d'envoi", 9: "ballon en jeu", 10: "issue", 11: "hors-jeu",
+    12: "fautes", 13: "coups francs", 14: "penalty", 15: "rentree de touche",
+    16: "coup de pied de but", 17: "coup de pied de coin",
+}
+OUTLINE_NUM_RE = re.compile(r"^\s*(?:loi\s*)?(\d{1,2})\b\s*[-–—:.|]?\s*(.*)$", re.I)
 
-    return "\n".join(page.extract_text() or "" for page in PdfReader(path).pages)
+
+def _plain(s: str) -> str:
+    s = unicodedata.normalize("NFKD", s.lower().replace("’", "'"))
+    return "".join(c for c in s if not unicodedata.combining(c))
+
+
+def read_outline(reader) -> list[tuple[int, str, int]]:
+    """Signets du PDF à plat : (profondeur, titre, page de départ, à partir de 0)."""
+    flat: list[tuple[int, str, int]] = []
+
+    def walk(items, depth: int) -> None:
+        for it in items:
+            if isinstance(it, list):
+                walk(it, depth + 1)
+            else:
+                try:
+                    flat.append((depth, str(it.title).strip(), reader.get_destination_page_number(it)))
+                except Exception:
+                    pass
+
+    walk(reader.outline, 0)
+    return flat
+
+
+def law_number(title: str) -> int | None:
+    m = OUTLINE_NUM_RE.match(title)
+    if m and 1 <= int(m.group(1)) <= 17:
+        return int(m.group(1))
+    t = _plain(title)
+    # titre seul : la correspondance la plus longue gagne (« coup de pied de but » avant « ballon »)
+    hits = [(len(v), n) for n, v in LAW_TITLES.items() if t.strip(" .") in (v, f"le {v}", f"la {v}", f"les {v}", f"l'{v}")
+            or t.endswith(" " + v)]
+    return max(hits)[1] if hits else None
+
+
+def law_ranges(outline: list[tuple[int, str, int]], n_pages: int) -> dict[int, dict]:
+    """Pages de chaque loi d'après les signets : {n: {title, start, stop, subs: [(titre, page)]}}.
+
+    On garde la première suite croissante de signets 1..17 au même niveau ; la loi 17 s'arrête
+    au signet suivant de même niveau (ex. « Modifications ») ou à la fin du document.
+    """
+    found: dict[int, tuple[int, int, str, int]] = {}  # n -> (index, profondeur, titre, page)
+    for i, (depth, title, page) in enumerate(outline):
+        n = law_number(title)
+        if n and n not in found and all(m < n for m in found) and (not found or depth == found[min(found)][1]):
+            found[n] = (i, depth, title, page)
+    if sorted(found) != list(range(1, 18)):
+        return {}
+    laws = {}
+    for n in range(1, 18):
+        i, depth, title, start = found[n]
+        if n < 17:
+            j, stop = found[n + 1][0], found[n + 1][3]
+        else:
+            j = next((k for k in range(i + 1, len(outline)) if outline[k][0] <= depth), len(outline))
+            stop = outline[j][2] if j < len(outline) else n_pages
+        subs = [(t, p) for d, t, p in outline[i + 1:j] if d == depth + 1]
+        m = OUTLINE_NUM_RE.match(title)
+        clean = m.group(2).strip() if m and m.group(2).strip() else title
+        laws[n] = {"title": clean, "start": start, "stop": max(stop, start + 1), "subs": subs}
+    return laws
+
+
+def strip_repeated_lines(pages: list[str], min_pages: int = 15) -> list[str]:
+    """Retire en-têtes et pieds de page : lignes courtes répétées sur beaucoup de pages."""
+    count: dict[str, int] = {}
+    for text in pages:
+        for line in {l.strip() for l in text.splitlines() if l.strip()}:
+            count[line] = count.get(line, 0) + 1
+    rep = {l for l, c in count.items() if c >= min_pages and len(l) < 80}
+    return ["\n".join(l for l in t.splitlines() if l.strip() not in rep) for t in pages]
 
 
 def build_ifab(pdf: Path, out: Path) -> list[dict]:
-    out.mkdir(parents=True, exist_ok=True)
-    laws = split_laws(pdf_text(pdf))
+    from pypdf import PdfReader
+
+    reader = PdfReader(pdf)
+    pages = strip_repeated_lines([p.extract_text() or "" for p in reader.pages])
+    ranges = law_ranges(read_outline(reader), len(pages))
+    laws: dict[int, tuple[str, list[tuple[str, str]]]] = {}
+    if ranges:
+        print("  découpage par signets")
+        for n, r in ranges.items():
+            subs = [(t, p) for t, p in r["subs"] if r["start"] <= p < r["stop"]]
+            if subs:
+                bounds = [(r["title"], r["start"])] + subs + [("", r["stop"])]
+                sections = [(t, "\n".join(pages[p:max(q, p + 1)]) if p < q else pages[p])
+                            for (t, p), (_, q) in zip(bounds, bounds[1:])]
+                sections = [("Introduction" if k == 0 else t, x) for k, (t, x) in enumerate(sections)]
+            else:
+                sections = law_sections("\n".join(pages[r["start"]:r["stop"]]))
+            laws[n] = (r["title"], [(t, re.sub(r"[ \t]+", " ", x).strip()) for t, x in sections if x.strip()])
+    else:
+        print("  pas de signets exploitables : découpage par le texte")
+        for n, (title, body) in split_laws("\n".join(pages)).items():
+            laws[n] = (title, law_sections(body))
     if not laws:
-        raise SystemExit("Découpage IFAB impossible : vérifier que le PDF est bien les Lois du jeu en français.")
+        raise SystemExit("Découpage IFAB impossible. Lancer avec --inspect et envoyer la sortie.")
+
+    out.mkdir(parents=True, exist_ok=True)
     docs = []
-    for n, (title, body) in laws.items():
+    for n, (title, sections) in laws.items():
         doc_id = f"ifab-loi-{n:02d}"
         meta = {"id": doc_id, "title": f"Loi {n} : {title}", "source": f"IFAB, Lois du jeu ({pdf.name})",
                 "licence": "IFAB, usage pédagogique, non redistribué", "retrieved": date.today().isoformat()}
         path = out / f"{doc_id}.md"
-        path.write_text(to_markdown(meta, law_sections(body)), encoding="utf-8")
+        path.write_text(to_markdown(meta, sections), encoding="utf-8")
         docs.append({**meta, "path": path})
-    print(f"  ok : {len(docs)} lois IFAB")
+        print(f"  Loi {n:2d} : {title} ({len(sections)} sections, {sum(len(x) for _, x in sections)} caractères)")
     return docs
+
+
+def inspect_pdf(pdf: Path) -> None:
+    """Affiche de quoi corriger le découpage sans ouvrir le PDF : signets et débuts de pages."""
+    from pypdf import PdfReader
+
+    reader = PdfReader(pdf)
+    outline = read_outline(reader)
+    print(f"{len(reader.pages)} pages, {len(outline)} signets")
+    for depth, title, page in outline[:150]:
+        n = law_number(title)
+        print(f"{'  ' * depth}p{page + 1:>3} {title}" + (f"   -> loi {n}" if n else ""))
+    print("\nDébut de quelques pages :")
+    for i in range(0, len(reader.pages), 12):
+        lines = [l.strip() for l in (reader.pages[i].extract_text() or "").splitlines() if l.strip()][:3]
+        print(f"p{i + 1:>3} | " + " / ".join(lines)[:150])
 
 
 # Manifeste ------------------------------------------------------------------------
@@ -231,7 +349,11 @@ def main() -> None:
     p = argparse.ArgumentParser()
     p.add_argument("--ifab-pdf", type=Path, help="PDF des Lois du jeu en français (theifab.com)")
     p.add_argument("--no-wiki", action="store_true", help="garder les articles Wikipédia déjà téléchargés")
+    p.add_argument("--inspect", type=Path, metavar="PDF", help="affiche signets et débuts de pages, puis s'arrête")
     a = p.parse_args()
+    if a.inspect:
+        inspect_pdf(a.inspect)
+        return
 
     print("Wikipédia :")
     docs = existing_docs(CORPUS_DIR / "wiki") if a.no_wiki else build_wiki(CORPUS_DIR / "wiki")

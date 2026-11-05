@@ -24,6 +24,7 @@ cp .env.example .env   # puis remplir la clé et le modèle
 ```bash
 python scripts/build_corpus.py                      # articles Wikipédia (FR)
 python scripts/build_corpus.py --no-wiki --ifab-pdf <Lois_du_jeu_FR.pdf>   # + lois du jeu IFAB
+python scripts/build_corpus.py --inspect <Lois_du_jeu_FR.pdf>              # diagnostic si le découpage échoue
 python -m src.rag --list                            # identifiants des morceaux, pour tests.jsonl
 ```
 

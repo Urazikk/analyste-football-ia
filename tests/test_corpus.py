@@ -82,3 +82,28 @@ def test_load_corpus(tmp_path):
         bc.to_markdown({"id": "wiki-x", "title": "X", "source": "u"}, bc.wiki_sections(WIKI)), encoding="utf-8")
     chunks = rag.load_corpus(tmp_path)
     assert [c.id for c in chunks] == ["wiki-x#introduction", "wiki-x#regle", "wiki-x#exceptions", "wiki-x#histoire"]
+
+
+def test_law_number():
+    assert bc.law_number("Loi 11 – Hors-jeu") == 11
+    assert bc.law_number("11 Le hors-jeu") == 11
+    assert bc.law_number("Le coup de pied de but") == 16
+    assert bc.law_number("Le ballon") == 2
+    assert bc.law_number("Glossaire") is None
+
+
+def test_law_ranges_from_outline():
+    outline = [(0, "Avant-propos", 0)]
+    for n in range(1, 18):
+        outline += [(0, f"Loi {n} – Titre {n}", 10 * n), (1, f"1. Partie {n}", 10 * n + 2)]
+    outline += [(0, "Modifications des Lois", 180)]
+    r = bc.law_ranges(outline, 200)
+    assert sorted(r) == list(range(1, 18))
+    assert (r[11]["start"], r[11]["stop"], r[11]["title"]) == (110, 120, "Titre 11")
+    assert r[17]["stop"] == 180 and r[17]["subs"] == [("1. Partie 17", 172)]
+    assert bc.law_ranges(outline[:5], 200) == {}
+
+
+def test_strip_repeated_lines():
+    pages = [f"Lois du Jeu 2025/26\ncontenu {i}" for i in range(20)]
+    assert bc.strip_repeated_lines(pages)[3] == "contenu 3"
