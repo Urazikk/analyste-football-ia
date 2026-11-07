@@ -1,11 +1,12 @@
 """Construit le corpus du RAG dans data/corpus/.
 
     python scripts/build_corpus.py                         # Wikipédia seul
-    python scripts/build_corpus.py --ifab-pdf lois.pdf     # + lois du jeu IFAB (PDF FR téléchargé à la main)
+    python scripts/build_corpus.py --ifab-download         # + lois du jeu IFAB 2026/27 (PDF FR téléchargé)
+    python scripts/build_corpus.py --ifab-pdf lois.pdf     # + lois du jeu IFAB depuis un PDF local
     python scripts/build_corpus.py --inspect lois.pdf      # diagnostic du PDF si le découpage échoue
 
-Lois IFAB : découpage par les signets du PDF (fiable même avec une mise en page en diapositives),
-sinon par le texte (« Loi N » en début de ligne).
+Lois IFAB : découpage par les signets du PDF, sinon par les pages séparatrices « Loi / N »
+(édition 2026/27), sinon par le texte (« Loi N » en début de ligne).
 
 Sorties :
 - data/corpus/wiki/*.md  : articles Wikipédia (CC BY-SA 4.0), versionnés dans git avec leur révision
@@ -31,30 +32,26 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from src.config import CORPUS_DIR  # noqa: E402
 
 WIKI_API = "https://fr.wikipedia.org/w/api.php"
-USER_AGENT = "analyste-football-ia/0.1 (projet etudiant ECE)"
+# Lois du jeu 2026/27 en français, pages simples (page « PDF Downloads » de theifab.com)
+IFAB_PDF_URL = "https://downloads.theifab.com/downloads/lois-du-jeu-202627-pages-simples?l=fr"
+IFAB_PDF_PATH = Path(__file__).resolve().parent.parent / "data" / "cache" / "lois-du-jeu-2026-27.pdf"
+USER_AGENT = "analyste-football-ia/0.1 (https://github.com/Urazikk/analyste-football-ia; projet etudiant ECE)"
 
-# Articles retenus : règles et arbitrage. Les titres absents sont signalés puis ignorés.
-WIKI_TITLES = [
+# Articles retenus : une page par loi du jeu, plus l'arbitrage et la discipline.
+# Les titres absents sont signalés puis ignorés ; les redirections vers une même page sont dédoublonnées.
+WIKI_TITLES = [f"Loi {n} du football" for n in range(1, 18)] + [
     "Lois du jeu (football)",
     "Hors-jeu (football)",
-    "Faute (football)",
-    "Coup franc (football)",
-    "Coup de pied de réparation",
-    "Coup de pied de coin",
-    "Rentrée de touche",
-    "Coup de pied de but",
+    "Penalty (football)",
+    "Corner (football)",
     "Carton jaune",
     "Carton rouge",
     "Arbitre (football)",
-    "Arbitre assistant vidéo",
+    "Assistance vidéo à l'arbitrage en football",
     "Tirs au but",
-    "Prolongation (sport)",
-    "Main (football)",
     "Gardien de but (football)",
     "Remplaçant (football)",
-    "Terrain de football",
     "Ballon de football",
-    "Équipement de football",
 ]
 
 DROP_SECTIONS = {"notes et references", "references", "voir aussi", "liens externes",
@@ -109,7 +106,13 @@ def fetch_wiki(title: str) -> dict | None:
     params = {"action": "query", "prop": "extracts|revisions|info", "rvprop": "ids", "inprop": "url",
               "explaintext": 1, "exsectionformat": "wiki", "redirects": 1, "titles": title,
               "format": "json", "formatversion": 2}
-    r = requests.get(WIKI_API, params=params, headers={"User-Agent": USER_AGENT}, timeout=30)
+    for attempt in range(6):  # 429 : on attend le délai demandé par l'API
+        r = requests.get(WIKI_API, params=params, headers={"User-Agent": USER_AGENT}, timeout=30)
+        if r.status_code != 429:
+            break
+        wait = int(r.headers.get("retry-after", 2 ** attempt * 5))
+        print(f"  429, nouvel essai dans {wait} s")
+        time.sleep(wait)
     r.raise_for_status()
     page = r.json()["query"]["pages"][0]
     return None if page.get("missing") else page
@@ -120,11 +123,14 @@ def build_wiki(out: Path) -> list[dict]:
     docs = []
     for title in WIKI_TITLES:
         page = fetch_wiki(title)
-        time.sleep(0.5)  # politesse envers l'API
+        time.sleep(3)  # politesse : l'IP partagée est vite limitée (429)
         if page is None:
             print(f"  absent : {title}")
             continue
         doc_id = "wiki-" + slugify(page["title"])
+        if any(d["id"] == doc_id for d in docs):
+            print(f"  doublon : {title} -> {page['title']}")
+            continue
         meta = {"id": doc_id, "title": page["title"], "source": page["fullurl"],
                 "licence": "CC BY-SA 4.0", "revision": str(page["revisions"][0]["revid"]),
                 "retrieved": date.today().isoformat()}
@@ -139,6 +145,7 @@ def build_wiki(out: Path) -> list[dict]:
 
 LAW_RE = re.compile(r"(?mi)^\s*loi\s+(\d{1,2})\s*[-–—:.]?\s*(.*)$")
 SUB_RE = re.compile(r"^(\d{1,2})\.\s+(\S.{0,80})$")
+SUB_MAX = 60  # longueur maximale d'un sous-titre
 
 
 def split_laws(text: str) -> dict[int, tuple[str, str]]:
@@ -173,14 +180,19 @@ def split_laws(text: str) -> dict[int, tuple[str, str]]:
 
 
 def law_sections(body: str) -> list[tuple[str, str]]:
-    """Sections d'une loi d'après ses sous-titres numérotés (« 1. Surface de jeu »)."""
+    """Sections d'une loi d'après ses sous-titres numérotés (« 1. Surface de jeu »).
+
+    Un sous-titre est court, sans ponctuation finale, et suit la numérotation (1, 2, 3...) :
+    une liste numérotée dans le texte n'ouvre donc pas de section.
+    """
     sections: list[tuple[str, str]] = []
-    title, buf = "Introduction", []
+    title, buf, expected = "Introduction", [], 1
     for line in body.splitlines():
         m = SUB_RE.match(line.strip())
-        if m and not line.strip().endswith((".", ",", ";")):
+        if (m and int(m.group(1)) == expected and len(line.strip()) <= SUB_MAX
+                and not line.strip().endswith((".", ",", ";", ":"))):
             sections.append((title, "\n".join(buf)))
-            title, buf = f"{m.group(1)}. {m.group(2).strip()}", []
+            title, buf, expected = f"{m.group(1)}. {m.group(2).strip()}", [], expected + 1
         else:
             buf.append(line)
     sections.append((title, "\n".join(buf)))
@@ -269,11 +281,68 @@ def strip_repeated_lines(pages: list[str], min_pages: int = 15) -> list[str]:
     return ["\n".join(l for l in t.splitlines() if l.strip() not in rep) for t in pages]
 
 
+HEADER_RE = re.compile(r"^Lois du Jeu \d{4}/\d{2}\s*\|.*$")  # en-tête courant des pages
+HEADER_LAW_RE = re.compile(r"\|\s*Loi\s+(\d{1,2})\s*\|\s*(.+)$")
+
+
+def _lines(page: str) -> list[str]:
+    return [l.strip() for l in page.splitlines() if l.strip()]
+
+
+def is_title_page(page: str) -> bool:
+    """Page de titre : 1 à 4 lignes de texte hors numéro de page, sans en-tête courant."""
+    ls = [l for l in _lines(page) if not l.isdigit()]
+    return 1 <= len(ls) <= 4 and not any("|" in l for l in ls)
+
+
+def separator_ranges(pages: list[str]) -> dict[int, tuple[int, int]]:
+    """Pages de chaque loi d'après les pages séparatrices « Loi / N » (édition 2026/27 sans signets).
+
+    La loi N va de sa page séparatrice (exclue) à celle de la loi N+1 ; la loi 17 s'arrête
+    à la page de titre suivante (ex. « Protocole d'assistance vidéo à l'arbitrage »).
+    """
+    seps: dict[int, int] = {}
+    for i, page in enumerate(pages):
+        ls = _lines(page)
+        if len(ls) == 2 and ls[0].lower() == "loi" and ls[1].isdigit() and 1 <= int(ls[1]) <= 17:
+            seps.setdefault(int(ls[1]), i)
+    if sorted(seps) != list(range(1, 18)) or any(seps[n] >= seps[n + 1] for n in range(1, 17)):
+        return {}
+    stop17 = next((i for i in range(seps[17] + 1, len(pages)) if is_title_page(pages[i])), len(pages))
+    return {n: (seps[n] + 1, seps[n + 1] if n < 17 else stop17) for n in range(1, 18)}
+
+
+def clean_page(page: str) -> str:
+    """Retire numéros de page et en-têtes courants."""
+    return "\n".join(l for l in page.splitlines() if not l.strip().isdigit() and not HEADER_RE.match(l.strip()))
+
+
+def law_title(pages: list[str], n: int) -> str:
+    """Titre officiel lu dans l'en-tête courant « Lois du Jeu 2026/27 | Loi N | Titre »."""
+    for page in pages:
+        for line in _lines(page):
+            m = HEADER_LAW_RE.search(line)
+            if m and int(m.group(1)) == n:
+                return m.group(2).strip()
+    return LAW_TITLES[n].capitalize()
+
+
+def var_protocol(pages: list[str], start: int) -> tuple[str, str] | None:
+    """Protocole VAR : de sa page de titre à la page de titre suivante."""
+    if start >= len(pages) or "vid" not in _plain(" ".join(_lines(pages[start]))):
+        return None
+    title = " ".join(l for l in _lines(pages[start]) if not l.isdigit())
+    stop = next((i for i in range(start + 1, len(pages)) if is_title_page(pages[i])), len(pages))
+    return title, "\n".join(clean_page(p) for p in pages[start + 1:stop])
+
+
 def build_ifab(pdf: Path, out: Path) -> list[dict]:
     from pypdf import PdfReader
 
     reader = PdfReader(pdf)
-    pages = strip_repeated_lines([p.extract_text() or "" for p in reader.pages])
+    raw = [p.extract_text() or "" for p in reader.pages]
+    pages = strip_repeated_lines(raw)
+    extra: tuple[str, str] | None = None
     ranges = law_ranges(read_outline(reader), len(pages))
     laws: dict[int, tuple[str, list[tuple[str, str]]]] = {}
     if ranges:
@@ -288,6 +357,11 @@ def build_ifab(pdf: Path, out: Path) -> list[dict]:
             else:
                 sections = law_sections("\n".join(pages[r["start"]:r["stop"]]))
             laws[n] = (r["title"], [(t, re.sub(r"[ \t]+", " ", x).strip()) for t, x in sections if x.strip()])
+    elif seps := separator_ranges(raw):
+        print("  découpage par pages séparatrices « Loi N »")
+        for n, (start, stop) in seps.items():
+            laws[n] = (law_title(raw[start:stop], n), law_sections("\n".join(clean_page(p) for p in raw[start:stop])))
+        extra = var_protocol(raw, seps[17][1])
     else:
         print("  pas de signets exploitables : découpage par le texte")
         for n, (title, body) in split_laws("\n".join(pages)).items():
@@ -305,6 +379,14 @@ def build_ifab(pdf: Path, out: Path) -> list[dict]:
         path.write_text(to_markdown(meta, sections), encoding="utf-8")
         docs.append({**meta, "path": path})
         print(f"  Loi {n:2d} : {title} ({len(sections)} sections, {sum(len(x) for _, x in sections)} caractères)")
+    if extra:
+        title, body = extra
+        meta = {"id": "ifab-protocole-var", "title": title, "source": f"IFAB, Lois du jeu ({pdf.name})",
+                "licence": "IFAB, usage pédagogique, non redistribué", "retrieved": date.today().isoformat()}
+        path = out / "ifab-protocole-var.md"
+        path.write_text(to_markdown(meta, law_sections(body)), encoding="utf-8")
+        docs.append({**meta, "path": path})
+        print(f"  {title} ({len(body)} caractères)")
     return docs
 
 
@@ -322,6 +404,21 @@ def inspect_pdf(pdf: Path) -> None:
     for i in range(0, len(reader.pages), 12):
         lines = [l.strip() for l in (reader.pages[i].extract_text() or "").splitlines() if l.strip()][:3]
         print(f"p{i + 1:>3} | " + " / ".join(lines)[:150])
+
+
+def download_ifab(dest: Path = IFAB_PDF_PATH) -> Path:
+    """Télécharge le PDF IFAB dans data/cache/ (non versionné), sauf s'il y est déjà."""
+    import requests
+
+    if not dest.exists():
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        r = requests.get(IFAB_PDF_URL, headers={"User-Agent": USER_AGENT}, timeout=120)
+        r.raise_for_status()
+        if not r.content.startswith(b"%PDF"):
+            raise SystemExit(f"Le lien IFAB ne renvoie plus un PDF : {IFAB_PDF_URL}")
+        dest.write_bytes(r.content)
+    print(f"  PDF IFAB : {dest} ({dest.stat().st_size // 1024} Ko)")
+    return dest
 
 
 # Manifeste ------------------------------------------------------------------------
@@ -348,6 +445,7 @@ def existing_docs(folder: Path) -> list[dict]:
 def main() -> None:
     p = argparse.ArgumentParser()
     p.add_argument("--ifab-pdf", type=Path, help="PDF des Lois du jeu en français (theifab.com)")
+    p.add_argument("--ifab-download", action="store_true", help="télécharge le PDF IFAB 2026/27 dans data/cache/")
     p.add_argument("--no-wiki", action="store_true", help="garder les articles Wikipédia déjà téléchargés")
     p.add_argument("--inspect", type=Path, metavar="PDF", help="affiche signets et débuts de pages, puis s'arrête")
     a = p.parse_args()
@@ -358,6 +456,8 @@ def main() -> None:
     print("Wikipédia :")
     docs = existing_docs(CORPUS_DIR / "wiki") if a.no_wiki else build_wiki(CORPUS_DIR / "wiki")
     print("IFAB :")
+    if a.ifab_download:
+        a.ifab_pdf = download_ifab()
     docs += build_ifab(a.ifab_pdf, CORPUS_DIR / "ifab") if a.ifab_pdf else existing_docs(CORPUS_DIR / "ifab")
     write_manifest(docs, CORPUS_DIR)
 

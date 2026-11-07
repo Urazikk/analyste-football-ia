@@ -23,12 +23,12 @@ cp .env.example .env   # puis remplir la clé et le modèle
 
 ```bash
 python scripts/build_corpus.py                      # articles Wikipédia (FR)
-python scripts/build_corpus.py --no-wiki --ifab-pdf <Lois_du_jeu_FR.pdf>   # + lois du jeu IFAB
+python scripts/build_corpus.py --no-wiki --ifab-download                  # + lois du jeu IFAB 2026/27 (PDF FR)
 python scripts/build_corpus.py --inspect <Lois_du_jeu_FR.pdf>              # diagnostic si le découpage échoue
 python -m src.rag --list                            # identifiants des morceaux, pour tests.jsonl
 ```
 
-Les articles Wikipédia (CC BY-SA 4.0) sont versionnés dans `data/corpus/wiki/` avec leur numéro de révision, pour que l'évaluation soit reproductible. Les lois de l'IFAB ne sont pas redistribuées : télécharger le PDF français sur theifab.com, puis lancer le script. `data/corpus/manifest.json` liste les documents et leur empreinte sha256.
+Les articles Wikipédia (CC BY-SA 4.0) sont versionnés dans `data/corpus/wiki/` avec leur numéro de révision, pour que l'évaluation soit reproductible. Les lois de l'IFAB ne sont pas redistribuées : `--ifab-download` télécharge le PDF français 2026/27 dans `data/cache/` (non versionné) puis le découpe (une loi par fichier, plus le protocole VAR). `--ifab-pdf` accepte un PDF local. `data/corpus/manifest.json` liste les documents et leur empreinte sha256.
 
 ## Utilisation
 
