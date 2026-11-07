@@ -14,3 +14,4 @@ Chaque choix technique est consigné avec la mesure qui le justifie.
 | 2026-11-05 | Corpus : lois du jeu IFAB (FR) téléchargées par script, non commitées (licence), + Wikipédia (CC BY-SA) | Wikipédia seul | | |
 | 2026-11-07 | Corpus construit : 25 articles Wikipédia FR (un par loi « Loi N du football » + 8 sur l'arbitrage), 17 lois IFAB 2026/27 + protocole VAR, soit 43 documents et 468 morceaux (290 wiki, 178 IFAB) | | | Le PDF 2026/27 n'a pas de signets : découpage par les pages séparatrices « Loi / N », vérifié sur les 17 lois |
 | | Extension niveau 3 | | défaut mesuré au niveau 2 | |
+| 2026-11-07 | Jeu de test : 20 cas doc (17 lois IFAB, 1 protocole VAR, 2 Wikipédia) et 5 cas absents | | réponse attendue vérifiée dans la section citée (`tests/test_cases.py`) ; termes des cas absents introuvables dans le corpus | sources au niveau de la section pour Recall@5 et MRR |

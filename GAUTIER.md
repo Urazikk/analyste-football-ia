@@ -80,6 +80,7 @@ Fini quand : un test pytest par règle.
 ## 5. Jeu de test : 10 tâches et 5 cas ambigus (`tests.jsonl`)
 
 Format dans `docs/protocole.md`, exemples `task-01`, `amb-01`, `amb-02` déjà présents.
+Les 20 cas `doc` et 5 cas `absent` de Simon sont écrits : ajouter tes lignes à la suite, sans toucher aux leurs. `pytest` vérifie que les identifiants restent uniques.
 - **10 tâches multi-étapes**, l'état final vérifié par `metrics.check_state`. Varier : rapport simple, rapport avec un chiffre précis (`must_contain`), équipe écrite en français, équipe inexistante (attendu : `no_report`), demande d'analyse **sans** demande de publication (attendu : `no_report`).
 - **5 cas ambigus ou hors sujet** : `clarify` (« le dernier match », sans équipe) ou `refuse` (hors football).
 - Vérifier les réponses attendues à la main dans les données, avant de lancer le modèle.
