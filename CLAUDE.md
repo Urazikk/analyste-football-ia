@@ -85,8 +85,10 @@ traces/
 - [x] Semaine 1 : squelette, protocole, boucle de l'agent testée, niveau 0 codé
 - [x] Semaine 1 : décisions techniques
 - [x] Semaine 1 : script du corpus et découpage (testés hors ligne)
-- [ ] Semaine 1 : lancer le corpus, 40 cas de test, premières mesures du niveau 0
-- [ ] Semaine 2 : RAG
+- [x] Semaine 1 : corpus construit (43 documents), 20 cas doc et 5 cas absents vérifiés
+- [ ] Semaine 1 : 10 tâches et 5 cas ambigus (Gautier), premières mesures du niveau 0 (clé Mistral)
+- [x] Semaine 2 : recherche du RAG mesurée (e5-small, dense, 600 caractères) ; réponse citée et abstention codées et testées
+- [ ] Semaine 2 : mesures du niveau 1 avec le LLM
 - [ ] Semaine 3 : outils StatsBomb, pass^3
 - [ ] Semaine 4 : extension, rapport, vidéo
 
@@ -100,7 +102,7 @@ traces/
 - Compétitions StatsBomb : Euro 2024 (55, 282), Copa América 2024 (223, 282), CdM 2022 (43, 106). Pas de compétition future dans l'open data : le rapport d'avant-match porte sur une affiche donnée par l'utilisateur, à partir des derniers matchs disponibles des deux sélections.
 - Modèle LLM : Mistral Small via API compatible OpenAI (provisoire). Petit benchmark au niveau 2 (10 tâches) contre Llama 70B via Groq et un modèle Ollama, consigné dans docs/decisions.md. Le tableau des niveaux utilise un seul modèle.
 - Corpus RAG : lois du jeu IFAB en français, téléchargées par un script, non commitées (licence) ; Wikipédia en complément.
-- Modèle d'embeddings : à trancher entre multilingual-e5-small et bge-m3, dense seul ou hybride + BM25, sur Recall@5 et MRR des 20 cas doc.
+- Modèle d'embeddings : multilingual-e5-small, recherche dense seule, morceaux de 600 caractères (Recall@5 1,00, MRR 0,89 ; bge-m3 et l'hybride n'aident pas). Pas de seuil d'abstention sur le score. Détail dans docs/decisions.md et results/retrieval.md.
 - Extension niveau 3 : à choisir d'après un défaut mesuré au niveau 2.
 - Répartition : Simon fait le corpus, le RAG, les 20 cas doc et les 5 cas absents. Gautier fait les données StatsBomb, les outils, les règles métier, les 10 tâches, les 5 cas ambigus et le benchmark LLM (détail dans GAUTIER.md). Ensemble : l'extension, les échecs, le rapport et la vidéo.
 - Rapport d'avant-match : identifié par l'affiche, fichier `reports/<domicile>-vs-<exterieur>.json` (noms StatsBomb en anglais).
