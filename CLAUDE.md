@@ -56,12 +56,13 @@ docs/
   sujet.pdf
   protocole.md     # protocole de test figé
   decisions.md     # journal des choix et de leurs mesures
+  plan.md          # audit et plan jusqu'au rendu
 src/
   config.py        # .env, chemins, marqueurs [ABSTENTION] [PRECISION] [REFUS]
   result.py        # Result : sortie commune à tous les niveaux
   tracing.py       # trace JSONL par exécution dans traces/
   llm.py           # client compatible OpenAI + niveau 0
-  rag.py           # niveau 1 : découpage fait, recherche et réponse à faire
+  rag.py           # niveau 1 : découpage, recherche dense, réponse citée, abstention
   agent.py         # niveau 2, boucle écrite à la main (faite et testée)
   tools.py         # outils + schémas JSON + effet + règles métier (lecture à faire)
   metrics.py       # Recall@k, MRR, mots clés, état final, pass^k
