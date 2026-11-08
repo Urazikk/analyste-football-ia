@@ -1,8 +1,8 @@
 """Niveau 1 : RAG (découpage, embeddings, recherche dense ou hybride, citations, abstention).
 
-Fait : lecture du corpus et découpage en morceaux à identifiants stables.
-À faire (semaine 2) : index, recherche, réponse citée, abstention. Choix à mesurer :
-taille des morceaux, modèle d'embeddings, dense seul ou hybride dense + BM25, seuil d'abstention.
+Choix mesurés par scripts/bench_retrieval.py (results/retrieval.md) : multilingual-e5-small,
+morceaux de 600 caractères, recherche dense seule. L'abstention est laissée au modèle (marqueur),
+le seuil sur le score dense ne séparant pas les cas absents des cas doc.
 
 Identifiants : « <doc>#<section> » puis « /<k> » si la section est coupée en plusieurs morceaux,
 par exemple « ifab-loi-11#1-position-de-hors-jeu/2 ». Les cas de test citent le document ou la
@@ -25,8 +25,8 @@ from src.config import CORPUS_DIR, EMBEDDING_MODEL, INDEX_DIR
 from src.result import Result
 from src.tracing import Tracer
 
-MAX_CHARS = 1200  # taille cible d'un morceau, à mesurer
-SEARCH_MODE = "hybrid"  # dense, bm25 ou hybrid : à fixer par la mesure (scripts/bench_retrieval.py)
+MAX_CHARS = 600  # taille d'un morceau, mesurée (docs/decisions.md, results/retrieval.md)
+SEARCH_MODE = "dense"  # dense, bm25 ou hybrid : l'hybride n'améliore ni Recall@5 ni MRR (results/retrieval.md)
 
 
 @dataclass
@@ -55,6 +55,17 @@ def parse_document(raw: str) -> tuple[dict[str, str], list[tuple[str, str]]]:
     return meta, sections
 
 
+def _hard_split(text: str, max_chars: int) -> list[str]:
+    """Coupe un bloc sans ponctuation (liste à puces) par lignes, puis par mots."""
+    out, buf = [], ""
+    for word in re.split(r"(?<=\n)|(?<= )", text):
+        if buf and len(buf) + len(word) > max_chars:
+            out.append(buf.strip())
+            buf = ""
+        buf += word
+    return out + [buf.strip()] if buf.strip() else out
+
+
 def split_text(text: str, max_chars: int = MAX_CHARS) -> list[str]:
     """Regroupe les paragraphes jusqu'à max_chars ; coupe par phrases un paragraphe trop long."""
     parts: list[str] = []
@@ -63,7 +74,8 @@ def split_text(text: str, max_chars: int = MAX_CHARS) -> list[str]:
         if len(para) <= max_chars:
             parts.append(para)
         else:
-            parts += re.split(r"(?<=[.!?])\s+", para)
+            for sent in re.split(r"(?<=[.!?;])\s+", para):
+                parts += _hard_split(sent, max_chars) if len(sent) > max_chars else [sent]
     chunks, buf = [], ""
     for part in filter(None, parts):
         if buf and len(buf) + len(part) + 2 > max_chars:
@@ -201,7 +213,7 @@ def search(query: str, k: int = 5, mode: str = SEARCH_MODE) -> list[tuple[Chunk,
     return get_index().search(query, k, mode)
 
 
-ABSTAIN_THRESHOLD = 0.0  # score dense minimal du meilleur morceau, à fixer par la mesure
+ABSTAIN_THRESHOLD = 0.0  # désactivé : avec e5-small, les scores des cas absents recouvrent ceux des cas doc
 CITE_RE = re.compile(r"\[([a-z0-9][a-z0-9#/\-]*)\]")
 
 SYSTEM_PROMPT = f"""Tu es un analyste de football rigoureux. Tu réponds en français, brièvement,

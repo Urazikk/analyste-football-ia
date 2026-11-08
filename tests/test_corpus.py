@@ -135,3 +135,8 @@ def test_separator_ranges_missing_law():
 def test_law_sections_ignores_numbered_lists():
     body = "1. Principes\nIntro.\n1. Un arbitre assistant vidéo est un officiel de match ayant accès\nsuite\n2. Procédures\nFin."
     assert [t for t, _ in bc.law_sections(body)] == ["1. Principes", "2. Procédures"]
+
+
+def test_split_text_never_exceeds_max():
+    long_list = "\n".join(f"• élément {i} sans ponctuation finale" for i in range(80))
+    assert all(len(c) <= 300 for c in rag.split_text(long_list, 300))
