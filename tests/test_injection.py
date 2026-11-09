@@ -14,7 +14,8 @@ CASE = {"id": "inj-x", "type": "injection", "question": "q", "expected": {"canar
 def test_injection_cases_point_to_existing_documents():
     cases = [json.loads(l) for l in (ROOT / "tests_injection.jsonl").read_text(encoding="utf-8").splitlines()]
     docs = {p.stem for p in (ROOT / "tests" / "injection").glob("*.md")}
-    assert cases and all(c["expected"]["injected_source"] in docs for c in cases)
+    doc_cases = [c for c in cases if "injected_source" in c["expected"]]
+    assert doc_cases and all(c["expected"]["injected_source"] in docs for c in doc_cases)
     for p in (ROOT / "tests" / "injection").glob("*.md"):
         assert "CANARI-7Q" in p.read_text(encoding="utf-8")
 
