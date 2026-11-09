@@ -4,162 +4,162 @@
     "title": "Loi 1 : Terrain",
     "source": "IFAB, Lois du jeu (lois-du-jeu-2026-27.pdf)",
     "licence": "IFAB, usage pédagogique, non redistribué",
-    "retrieved": "2026-11-07",
+    "retrieved": "2026-11-09",
     "file": "ifab/ifab-loi-01.md",
-    "sha256": "2d884f92afc455c3bef9f4a2199f3c73ff2d335254cd12bcbd836254c2ad37b1"
+    "sha256": "574ffd8270cf04ee07581f3da79d385c990d24d18281e97183f2e38730cdf841"
   },
   {
     "id": "ifab-loi-02",
     "title": "Loi 2 : Ballon",
     "source": "IFAB, Lois du jeu (lois-du-jeu-2026-27.pdf)",
     "licence": "IFAB, usage pédagogique, non redistribué",
-    "retrieved": "2026-11-07",
+    "retrieved": "2026-11-09",
     "file": "ifab/ifab-loi-02.md",
-    "sha256": "1ae5acc82f3401e2fb0d4db0f1454a3e00ec5b9a95043824929d9e3b52bc27ba"
+    "sha256": "6629b21221bf21548f90a95a5497920530347367e1862995fc7bf78461d03c48"
   },
   {
     "id": "ifab-loi-03",
     "title": "Loi 3 : Joueurs",
     "source": "IFAB, Lois du jeu (lois-du-jeu-2026-27.pdf)",
     "licence": "IFAB, usage pédagogique, non redistribué",
-    "retrieved": "2026-11-07",
+    "retrieved": "2026-11-09",
     "file": "ifab/ifab-loi-03.md",
-    "sha256": "52c9a5065c7f7642ba007821f4d2d44137289dd9a87eb33525ef2dd0655bc07c"
+    "sha256": "d0e8d80368ca57ace10f2691f840bac083c0a155862fd00251dee8a15ecac648"
   },
   {
     "id": "ifab-loi-04",
     "title": "Loi 4 : Équipement des joueurs",
     "source": "IFAB, Lois du jeu (lois-du-jeu-2026-27.pdf)",
     "licence": "IFAB, usage pédagogique, non redistribué",
-    "retrieved": "2026-11-07",
+    "retrieved": "2026-11-09",
     "file": "ifab/ifab-loi-04.md",
-    "sha256": "76048681e3dfac6ca00a83d1a145f41b27f078aa6c69a9046de8d60d71090bdc"
+    "sha256": "b9f781b16c025f3577e9aef9eebb479500fad1195079c6a868a43df030a607d1"
   },
   {
     "id": "ifab-loi-05",
     "title": "Loi 5 : Arbitre",
     "source": "IFAB, Lois du jeu (lois-du-jeu-2026-27.pdf)",
     "licence": "IFAB, usage pédagogique, non redistribué",
-    "retrieved": "2026-11-07",
+    "retrieved": "2026-11-09",
     "file": "ifab/ifab-loi-05.md",
-    "sha256": "649fee6bc232acb1bb997a37583f28d831afa9d7912b9cefa3b175e94500b4f4"
+    "sha256": "0ccbaf02245466d65b8c30d4139e6fcf3e95525dedef4b858dd631a553108505"
   },
   {
     "id": "ifab-loi-06",
     "title": "Loi 6 : Autres arbitres",
     "source": "IFAB, Lois du jeu (lois-du-jeu-2026-27.pdf)",
     "licence": "IFAB, usage pédagogique, non redistribué",
-    "retrieved": "2026-11-07",
+    "retrieved": "2026-11-09",
     "file": "ifab/ifab-loi-06.md",
-    "sha256": "a1e8a186b365d7a6c0b7cf548b7dfcd44677d1947d09c7f1d2e6db28fc778215"
+    "sha256": "6046058aaeac4bcd5aaa924149d78b91380603f69230fdfa6454d3a1dd9fa5e6"
   },
   {
     "id": "ifab-loi-07",
     "title": "Loi 7 : Durée d’un match",
     "source": "IFAB, Lois du jeu (lois-du-jeu-2026-27.pdf)",
     "licence": "IFAB, usage pédagogique, non redistribué",
-    "retrieved": "2026-11-07",
+    "retrieved": "2026-11-09",
     "file": "ifab/ifab-loi-07.md",
-    "sha256": "1c5682c81e7e08bec006983e4df83dc552b02ca7d82e444861ec48236edb4351"
+    "sha256": "4ef11b516c04a0f69018cf2fc33c305f171faba57123f10e9b650787e42d4a32"
   },
   {
     "id": "ifab-loi-08",
     "title": "Loi 8 : Coup d’envoi et reprise du jeu",
     "source": "IFAB, Lois du jeu (lois-du-jeu-2026-27.pdf)",
     "licence": "IFAB, usage pédagogique, non redistribué",
-    "retrieved": "2026-11-07",
+    "retrieved": "2026-11-09",
     "file": "ifab/ifab-loi-08.md",
-    "sha256": "b338aea4e0887bd0a793df136078f71311e0d9402b26f4dae41fd0c1d9895e91"
+    "sha256": "e5ceea5c1dc1a22cf6aaa082a20cbf5e0138849b3c38ce971ceddca8418a5c1c"
   },
   {
     "id": "ifab-loi-09",
     "title": "Loi 9 : Ballon en jeu et hors du jeu",
     "source": "IFAB, Lois du jeu (lois-du-jeu-2026-27.pdf)",
     "licence": "IFAB, usage pédagogique, non redistribué",
-    "retrieved": "2026-11-07",
+    "retrieved": "2026-11-09",
     "file": "ifab/ifab-loi-09.md",
-    "sha256": "ac228f125c45ac302c2acf604823ac0153b03c127fa5eb7bc3f66f5042db6cce"
+    "sha256": "3df09b5a2176d4925a3ae1656b84717d221ba8d23b534958415bd97ddfe2bc9f"
   },
   {
     "id": "ifab-loi-10",
     "title": "Loi 10 : Issue d’un match",
     "source": "IFAB, Lois du jeu (lois-du-jeu-2026-27.pdf)",
     "licence": "IFAB, usage pédagogique, non redistribué",
-    "retrieved": "2026-11-07",
+    "retrieved": "2026-11-09",
     "file": "ifab/ifab-loi-10.md",
-    "sha256": "49bf903fac295e7b8324c14368f5731aa96730f84804bd2bfdc539ed434340af"
+    "sha256": "4e2f5108608e6710ca8f92802b2347c5c7fa33e9e930b9e6447c4a6b52c3ef86"
   },
   {
     "id": "ifab-loi-11",
     "title": "Loi 11 : Hors-jeu",
     "source": "IFAB, Lois du jeu (lois-du-jeu-2026-27.pdf)",
     "licence": "IFAB, usage pédagogique, non redistribué",
-    "retrieved": "2026-11-07",
+    "retrieved": "2026-11-09",
     "file": "ifab/ifab-loi-11.md",
-    "sha256": "e95187e0447d68bac55b2fb16d666f84e02ad559ac745b85444851cf05416395"
+    "sha256": "3867a3739920a8f82364c0966d197359a29e42219d35905be4a5693bca7dbcb4"
   },
   {
     "id": "ifab-loi-12",
     "title": "Loi 12 : Fautes et incorrections",
     "source": "IFAB, Lois du jeu (lois-du-jeu-2026-27.pdf)",
     "licence": "IFAB, usage pédagogique, non redistribué",
-    "retrieved": "2026-11-07",
+    "retrieved": "2026-11-09",
     "file": "ifab/ifab-loi-12.md",
-    "sha256": "4acaeadd94e0c51766b2cc4ff2b581c5379db5a6371e3f338d53c8052b32be89"
+    "sha256": "a4b0127cc0269c51838b534e02af3bd0217995989e37d614ca694f2ce95a8856"
   },
   {
     "id": "ifab-loi-13",
     "title": "Loi 13 : Coups francs",
     "source": "IFAB, Lois du jeu (lois-du-jeu-2026-27.pdf)",
     "licence": "IFAB, usage pédagogique, non redistribué",
-    "retrieved": "2026-11-07",
+    "retrieved": "2026-11-09",
     "file": "ifab/ifab-loi-13.md",
-    "sha256": "77f37e667f1eca706c8b3deaee2a2b9bf5c75a1f42811886951d5471d0a689a9"
+    "sha256": "84976ce1751d106c40b46c6186109541bcc66aeaf8976f5724a9bb1fb3929c77"
   },
   {
     "id": "ifab-loi-14",
     "title": "Loi 14 : Penalty",
     "source": "IFAB, Lois du jeu (lois-du-jeu-2026-27.pdf)",
     "licence": "IFAB, usage pédagogique, non redistribué",
-    "retrieved": "2026-11-07",
+    "retrieved": "2026-11-09",
     "file": "ifab/ifab-loi-14.md",
-    "sha256": "c0084df3cd140da1bf23dfa93c8d528f69dd2503858327d9001b20602e850f98"
+    "sha256": "d9d4d5871641becb3118b7d3290a0c5a85949c503b962231afac676fa43b8c75"
   },
   {
     "id": "ifab-loi-15",
     "title": "Loi 15 : Rentrée de touche",
     "source": "IFAB, Lois du jeu (lois-du-jeu-2026-27.pdf)",
     "licence": "IFAB, usage pédagogique, non redistribué",
-    "retrieved": "2026-11-07",
+    "retrieved": "2026-11-09",
     "file": "ifab/ifab-loi-15.md",
-    "sha256": "9a66d966599628fea5192cb7846c5862fca4af74d39db90d0dd30290fde454fe"
+    "sha256": "abc6a8dcce49e74e6a031e307494c91c9c6056335a07889354b0c63c0db641ee"
   },
   {
     "id": "ifab-loi-16",
     "title": "Loi 16 : Coup de pied de but",
     "source": "IFAB, Lois du jeu (lois-du-jeu-2026-27.pdf)",
     "licence": "IFAB, usage pédagogique, non redistribué",
-    "retrieved": "2026-11-07",
+    "retrieved": "2026-11-09",
     "file": "ifab/ifab-loi-16.md",
-    "sha256": "e253f710414dbe0cf3f2651f519d554c9cf976038a3331b629dc4f448c88f888"
+    "sha256": "e85d98291eaba69c7ef5915148535553afe3bb8168379c854d9284375a4d8318"
   },
   {
     "id": "ifab-loi-17",
     "title": "Loi 17 : Corner",
     "source": "IFAB, Lois du jeu (lois-du-jeu-2026-27.pdf)",
     "licence": "IFAB, usage pédagogique, non redistribué",
-    "retrieved": "2026-11-07",
+    "retrieved": "2026-11-09",
     "file": "ifab/ifab-loi-17.md",
-    "sha256": "87292f55dabe4cc36c70256c4a1d98aa54b7972592b852696b3a2fedcf27889d"
+    "sha256": "c31769b29784bcb5ff22b54063ea9e1110330f60460e30bc317447649dd3bc48"
   },
   {
     "id": "ifab-protocole-var",
     "title": "Protocole d’assistance vidéo à l’arbitrage",
     "source": "IFAB, Lois du jeu (lois-du-jeu-2026-27.pdf)",
     "licence": "IFAB, usage pédagogique, non redistribué",
-    "retrieved": "2026-11-07",
+    "retrieved": "2026-11-09",
     "file": "ifab/ifab-protocole-var.md",
-    "sha256": "18893f7cf8a2ea53103759def6ba7fa88e3777a310611192fcf20711734c58cc"
+    "sha256": "c608f09b0cbb75c2c8980388501cf9ccdbbb2d4bb6899582f1650bc7b84761c0"
   },
   {
     "id": "wiki-arbitre-football",

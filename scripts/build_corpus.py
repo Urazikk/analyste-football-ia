@@ -312,9 +312,16 @@ def separator_ranges(pages: list[str]) -> dict[int, tuple[int, int]]:
     return {n: (seps[n] + 1, seps[n + 1] if n < 17 else stop17) for n in range(1, 18)}
 
 
+# Légendes anglaises des schémas (signaux de l'arbitre), sans contenu pour un lecteur français
+DIAGRAM_RE = re.compile(r"(?:NEW )?(?:CORNER KICK|GOAL KICK|PENALTY KICK|FREE KICK|THROW-IN|OFFSIDE)|"
+                        r"Review – TV Signal|• Check – .*(?:finger|ﬁnger|/f_inger).*extended")
+
+
 def clean_page(page: str) -> str:
-    """Retire numéros de page et en-têtes courants."""
-    return "\n".join(l for l in page.splitlines() if not l.strip().isdigit() and not HEADER_RE.match(l.strip()))
+    """Retire numéros de page, en-têtes courants et légendes anglaises des schémas."""
+    lines = (DIAGRAM_RE.sub("", l) for l in page.splitlines()
+             if not l.strip().isdigit() and not HEADER_RE.match(l.strip()))
+    return "\n".join(l for l in lines if l.strip())
 
 
 def law_title(pages: list[str], n: int) -> str:
