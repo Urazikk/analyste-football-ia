@@ -150,3 +150,8 @@ Ordre de grandeur pour l'évaluation complète sur 80 cas, niveaux 0 à 3, avec 
 | 22 nov. | choix de l'extension, ensemble | |
 | 28 nov. | extension et sa mesure, rapport, vidéo, ensemble | |
 | 29 nov. | vérification depuis un clone neuf, ensemble | |
+
+### Avancement du plan ambitieux (9 novembre)
+
+- A1 fait (intervalles, comparaison appariée). A2 fait pour Simon (65 cas). A3 et A4 (documents) prêts, mesures avec le LLM au fil du quota.
+- C2 (export PDF, `src/export.py`) et C3 (onglets « Comparer les niveaux » et « Rapports publiés ») faits par Simon. Le contenu structuré du rapport (C2) reste à Gautier.

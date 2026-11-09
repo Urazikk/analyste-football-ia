@@ -19,3 +19,4 @@ def test_paraphrases_match_originals():
         o = originals[c["original"]]
         assert c["expected"] == o["expected"] and c["type"] == o["type"] and c["question"] != o["question"]
         assert c["style"] in ("familier", "situation")
+        assert c.get("relu", "").startswith("Simon"), f"{c['id']} non relu"

@@ -21,6 +21,9 @@ numpy>=1.26,<3
 # Agent
 jsonschema>=4.22,<5
 
+# Export PDF des rapports
+fpdf2>=2.7,<3
+
 # Interface
 streamlit>=1.38,<2
 
