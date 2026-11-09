@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 import unicodedata
 from pathlib import Path
 from typing import Any
@@ -67,3 +68,20 @@ def check_state(checks: list[dict[str, Any]], state_dir: Path) -> bool:
 def pass_hat_k(trials: list[bool]) -> bool:
     """pass^k : la tâche réussit seulement si les k essais réussissent."""
     return bool(trials) and all(trials)
+
+
+_NUMBER = re.compile(r"\d+(?:[.,]\d+)?")
+
+
+def numbers_in(text: str) -> list[float]:
+    """Nombres d'un texte, virgule ou point décimal (« 0,85 » et « 0.85 » donnent 0.85)."""
+    return [float(n.replace(",", ".")) for n in _NUMBER.findall(text)]
+
+
+def unsupported_numbers(report: str, tool_outputs: list[str]) -> list[float]:
+    """Chiffres du rapport absents des sorties d'outils du run, arrondis tolérés (58,1 cité 58).
+
+    Diagnostic de fidélité du niveau 2 : ne change pas le succès de la tâche.
+    """
+    seen = {round(x, d) for out in tool_outputs for x in numbers_in(out) for d in (0, 1, 2)}
+    return sorted({x for x in numbers_in(report) if x not in seen})

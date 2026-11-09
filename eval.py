@@ -47,7 +47,17 @@ def _read_rows(path: Path) -> list[dict[str, Any]]:
     return [json.loads(l) for l in path.read_text(encoding="utf-8").splitlines() if l.strip()]
 
 
+def _key(r: dict[str, Any]) -> tuple[Any, ...]:
+    return r.get("model"), r["id"], r.get("trial", 0)
+
+
 def _write_rows(path: Path, rows: list[dict[str, Any]]) -> None:
+    """Écrit les lignes du run en gardant celles des autres cas et des autres modèles déjà présentes.
+
+    Sans cela, `--types task` ou `--model qwen...` effaçait les résultats précédents du même niveau.
+    """
+    new = {_key(r) for r in rows}
+    rows = [r for r in _read_rows(path) if _key(r) not in new] + rows
     path.write_text("".join(json.dumps(r, ensure_ascii=False, default=str) + "\n" for r in rows), encoding="utf-8")
 
 
@@ -61,6 +71,7 @@ def run_case(fn: Callable[[str], Result], case: dict[str, Any], use_judge: bool 
         except Exception as e:  # quota, réseau... : le cas est noté en erreur, l'évaluation continue
             res = Result(level=level, error=f"{type(e).__name__}: {e}"[:1000], stop_reason="error")
         row: dict[str, Any] = {"id": case["id"], "type": case["type"], **res.to_dict()}
+        outputs = [c.get("output") or "" for c in row["tool_calls"]]
         row["tool_calls"] = [_slim(c) for c in row["tool_calls"]]
         exp = case.get("expected", {})
         if case["type"] == "doc":
@@ -80,6 +91,11 @@ def run_case(fn: Callable[[str], Result], case: dict[str, Any], use_judge: bool 
             row["correct"] = res.clarified if exp.get("behavior") == "clarify" else res.refused
         elif case["type"] == "task":
             row["correct"] = metrics.check_state(exp.get("checks", []), Path(state))
+            reports = sorted((Path(state) / "reports").glob("*.json"))
+            # diagnostic : chiffres du rapport publié absents des sorties d'outils (None : rien publié)
+            row["unsupported_numbers"] = metrics.unsupported_numbers(
+                " ".join(json.loads(r.read_text(encoding="utf-8"))["content"] for r in reports), outputs
+            ) if reports else None
     return row
 
 
@@ -107,6 +123,9 @@ def summarize(level: int, rows: list[dict[str, Any]]) -> dict[str, Any]:
         "Abstention": _mean([r["correct"] for r in by("absent")]),
         "Ambigu": _mean([r["correct"] for r in by("ambiguous")]),
         "Succès tâches": _mean([r["correct"] for r in by("task")]),
+        # part des rapports publiés (1er essai) qui citent au moins un chiffre absent des sorties d'outils
+        "Chiffres non soutenus": _mean([bool(r["unsupported_numbers"]) for r in by("task")
+                                        if r.get("unsupported_numbers") is not None]),
         "pass^3": _mean([metrics.pass_hat_k(v) for v in tasks.values()]),
         "Erreurs": sum(1 for r in rows if r.get("error")),
         "Coût/req ($)": _mean([config.cost_usd(r["tokens_in"], r["tokens_out"]) for r in first]),

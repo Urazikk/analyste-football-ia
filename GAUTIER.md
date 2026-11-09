@@ -97,11 +97,23 @@ Les 20 cas `doc` et 5 cas `absent` de Simon sont écrits : ajouter tes lignes à
 ## 6. Mesures
 
 ```bash
-python eval.py --levels 2 --types task           # succès et pass^3 sur 3 essais
-python eval.py --levels 2 --types task --model <autre> --base-url <autre url>
+python scripts/fetch_statsbomb.py                                  # cache des données (une fois)
+python eval.py --levels 2 --types task --trials 3 --limit 3        # essai : 3 tâches, environ 40 000 tokens
+python eval.py --levels 2 --types task --trials 3 --resume         # 10 tâches x 3 essais, à relancer le lendemain si 429
 ```
 
-- Benchmark LLM au niveau 2 : gpt-oss-120b (modèle retenu, Groq), qwen/qwen3.8-27b (Groq), un modèle Ollama. Clé Groq gratuite sur console.groq.com. Succès, pass^3, tokens, latence dans `docs/decisions.md`.
+- Les résultats s'ajoutent à `results/raw_level2.jsonl`, étiquetés par modèle : relancer sur les tâches n'efface plus les cas doc du niveau 2 ni les autres modèles.
+- Colonne « Chiffres non soutenus » : part des rapports publiés qui citent un chiffre absent des sorties d'outils du run (diagnostic, ne change pas le succès).
+- Benchmark au niveau 2, puis tableau comparatif dans `results/bench-llm.md` :
+
+```bash
+python eval.py --levels 2 --types task --model qwen/qwen3.8-27b --resume
+ollama pull qwen3:8b   # ou un autre petit modèle qui gère les appels d'outils
+python eval.py --levels 2 --types task --model qwen3:8b --base-url http://localhost:11434/v1 --resume
+python scripts/bench_models.py
+```
+
+- Consigner succès, pass^3, chiffres non soutenus, tokens et latence dans `docs/decisions.md`.
 - Noter les échecs observés (outil mal appelé, boucle qui tourne, chiffre inventé) : ils servent à choisir l'extension du niveau 3.
 
 ## Calendrier
