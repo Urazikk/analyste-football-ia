@@ -89,7 +89,8 @@ traces/
 - [x] Semaine 1 : corpus construit (43 documents), 20 cas doc et 5 cas absents vérifiés
 - [ ] Semaine 1 : 10 tâches et 5 cas ambigus (Gautier), premières mesures du niveau 0 (clé Mistral)
 - [x] Semaine 2 : recherche du RAG mesurée (e5-small, dense, 600 caractères) ; réponse citée et abstention codées et testées
-- [ ] Semaine 2 : mesures du niveau 1 avec le LLM
+- [x] Semaine 2 : niveau 1 mesuré sur 25 cas (gpt-oss-120b via Groq) ; outil search_rules pour l'agent ; juge de fidélité calibré (30 annotations, kappa 1,00)
+- [ ] Semaine 2 : niveau 2 complet (quota Groq de 200 000 tokens par jour : `python eval.py --resume`)
 - [ ] Semaine 3 : outils StatsBomb, pass^3
 - [ ] Semaine 4 : extension, rapport, vidéo
 
