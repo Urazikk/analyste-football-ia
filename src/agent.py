@@ -62,7 +62,17 @@ def run(
         if res.tokens >= max_tokens:
             res.stop_reason = "max_tokens"
             break
-        resp = llm(messages, tools=schemas)
+        try:
+            resp = llm(messages, tools=schemas)
+        except Exception as e:  # erreur de l'API : arguments refusés côté serveur, ou panne
+            msg = f"{type(e).__name__}: {e}"
+            tracer.log("llm_error", step=step, error=msg[:1000])
+            if "tool call validation failed" in msg.lower():
+                messages.append({"role": "user", "content": f"Ton dernier appel d'outil a été refusé : {msg[:500]} "
+                                                            "Corrige les arguments selon le schéma de l'outil."})
+                continue
+            res.error, res.stop_reason = msg[:1000], "llm_error"
+            break
         res.tokens_in += resp.tokens_in
         res.tokens_out += resp.tokens_out
         tracer.log("llm", step=step, tokens_in=resp.tokens_in, tokens_out=resp.tokens_out,

@@ -71,3 +71,25 @@ def test_search_rules_sources_and_retrieved(monkeypatch):
     res = agent.run("q", llm=llm, registry=tools.REGISTRY)
     assert res.retrieved == ["ifab-loi-03#1", "wiki-x#a"]
     assert res.sources == ["ifab-loi-03#1"]
+
+
+def test_api_tool_validation_error_is_returned_to_model():
+    seen = []
+
+    def llm(messages, tools=None):
+        seen.append(messages[-1]["content"])
+        if len(seen) == 1:
+            raise RuntimeError("Error code: 400 - Tool call validation failed: `/k`: maximum: got 10, want 8")
+        return LLMResponse("corrigé")
+
+    res = agent.run("q", llm=llm, registry=REG)
+    assert res.answer == "corrigé" and res.steps == 2
+    assert "refusé" in seen[1]
+
+
+def test_api_other_error_stops_cleanly():
+    def llm(messages, tools=None):
+        raise RuntimeError("Error code: 500 - panne")
+
+    res = agent.run("q", llm=llm, registry=REG)
+    assert res.stop_reason == "llm_error" and "panne" in res.error
