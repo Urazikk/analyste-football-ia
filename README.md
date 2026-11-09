@@ -16,8 +16,12 @@ Un assistant qui répond aux questions sur le football et prépare des rapports 
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env   # puis remplir la clé et le modèle
+cp .env.example .env   # puis mettre la clé Groq gratuite (console.groq.com)
 ```
+
+Sans GPU, installer d'abord torch en version processeur évite plusieurs Go de bibliothèques CUDA :
+`pip install torch --index-url https://download.pytorch.org/whl/cpu`, puis `pip install -r requirements.txt`.
+Versions exactes de l'environnement testé : `requirements-lock.txt`.
 
 ## Corpus
 

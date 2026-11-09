@@ -1,26 +1,28 @@
+# Bornes souples (Python 3.11+). Versions exactes testées : requirements-lock.txt (Python 3.13).
+
 # LLM et configuration
-openai>=1.40
-python-dotenv>=1.0
+openai>=1.40,<4
+python-dotenv>=1.0,<2
 
 # Données football
-statsbombpy>=1.13
-pandas>=2.2
-matplotlib>=3.8
+statsbombpy>=1.13,<2
+pandas>=2.2,<4
+matplotlib>=3.8,<4
 
 # Corpus
-requests>=2.31
-pypdf>=4.0
+requests>=2.31,<3
+pypdf>=4.0,<7
 
-# RAG (choix du modèle d'embeddings à confirmer par une mesure)
-sentence-transformers>=3.0
-rank-bm25>=0.2.2
-numpy>=1.26
+# RAG (multilingual-e5-small, choisi par mesure : docs/decisions.md)
+sentence-transformers>=3.0,<7
+rank-bm25>=0.2.2,<0.3
+numpy>=1.26,<3
 
 # Agent
-jsonschema>=4.22
+jsonschema>=4.22,<5
 
 # Interface
-streamlit>=1.38
+streamlit>=1.38,<2
 
 # Tests
-pytest>=8.0
+pytest>=8.0,<10
