@@ -98,3 +98,61 @@ def test_check_state_synonym_groups(tmp_path):
     ok = [{"kind": "report_published", "report": "a-vs-b", "must_contain": [["3-3", "3 à 3"], "cadres"]}]
     ko = [{"kind": "report_published", "report": "a-vs-b", "must_contain": [["2-2"]]}]
     assert metrics.check_state(ok, tmp_path) and not metrics.check_state(ko, tmp_path)
+
+
+# task-11 à task-20 (plan, A2) : chaque chiffre attendu recalculé avec les outils de l'agent
+
+def h2h(a: str, b: str, stage: str | None = None) -> list[dict]:
+    games = tools.head_to_head(a, b)["matches"]
+    return [g for g in games if stage is None or g["stage"] == stage]
+
+
+def expects(case_id: str, i: int, value: str) -> bool:
+    return value in numbers(case_id)[i]
+
+
+def test_task_11_all_argentina_france_meetings():
+    assert [g["score"] for g in h2h("Argentine", "France")] == ["3-3", "3-4"]
+    assert expects("task-11", 0, "3-3") and expects("task-11", 1, "3-4")
+
+
+def test_task_12_france_xg_last_five():
+    xg = tools.team_form("France")["summary"]["xg_for"]
+    assert xg == 6.29 and expects("task-12", 0, "6,29") and expects("task-12", 0, "6,3")
+
+
+def test_task_13_euro_2020_final():
+    (g,) = h2h("Angleterre", "Italie", "Final")
+    assert (g["date"][:4], g["score"], g["penalties"]) == ("2021", "1-1", "2-3")
+    assert expects("task-13", 0, "1-1") and expects("task-13", 1, "2-3")
+
+
+def test_task_14_world_cup_2018_semi():
+    (g,) = h2h("Croatie", "Angleterre", "Semi-finals")
+    assert g["date"][:4] == "2018" and expects("task-14", 0, g["score"])
+
+
+def test_task_15_brazil_shots_2018_quarter():
+    (g,) = h2h("Brésil", "Belgique", "Quarter-finals")
+    assert str(tools.team_stats(g["match_id"], "Brazil")["shots"]) in numbers("task-15")[1]
+
+
+def test_task_16_france_portugal_shootout():
+    (g,) = h2h("France", "Portugal", "Quarter-finals")
+    assert g["penalties"] == "5-3" and expects("task-16", 0, "5-3")
+
+
+def test_task_18_unknown_team_blocked():
+    with pytest.raises(ValueError):
+        data.resolve_team("Chine")
+
+
+def test_task_19_netherlands_argentina_2022():
+    (g,) = h2h("Pays-Bas", "Argentine", "Quarter-finals")
+    assert (g["score"], g["penalties"]) == ("2-2", "3-4")
+    assert expects("task-19", 0, "2-2") and expects("task-19", 1, "3-4")
+
+
+def test_task_20_morocco_xg_conceded():
+    xg = tools.team_form("Maroc")["summary"]["xg_against"]
+    assert xg == 5.18 and expects("task-20", 0, "5,18") and expects("task-20", 0, "5,2")
