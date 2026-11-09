@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import streamlit as st  # noqa: E402
 
-from src import agent, config, export, llm, rag  # noqa: E402
+from src import agent, config, export, llm, rag, report  # noqa: E402
 from src.result import Result  # noqa: E402
 
 LEVELS = {0: "0 · LLM seul", 1: "1 · RAG", 2: "2 · Agent", 3: "3 · Extension"}
@@ -113,6 +113,22 @@ def tab_compare() -> None:
                 st.warning("Action demandée, non exécutée ici : utiliser l'onglet Question pour la valider.")
 
 
+def show_report(data: dict) -> None:
+    """Mise en page de report.to_markdown ; les images (cartes des tirs) sont affichées avec st.image."""
+    md = report.to_markdown(data) if data.get("title") else data.get("content", "")
+    buf: list[str] = []
+    for line in md.splitlines():
+        m = export.IMAGE_RE.match(line.strip())
+        if m:
+            st.markdown("\n".join(buf))
+            buf = []
+            if Path(m.group(1)).is_file():
+                st.image(m.group(1), width=480)
+        else:
+            buf.append(line)
+    st.markdown("\n".join(buf))
+
+
 def tab_reports() -> None:
     """Rapports publiés : contenu et export PDF."""
     reports = export.published_reports()
@@ -122,7 +138,7 @@ def tab_reports() -> None:
     for path in reports:
         data = json.loads(path.read_text(encoding="utf-8"))
         with st.expander(f"{data.get('title') or path.stem} ({path.stem})"):
-            st.markdown(data.get("content", ""))
+            show_report(data)
             pdf = export.report_to_pdf(path)
             st.download_button("Télécharger le PDF", pdf.read_bytes(), file_name=pdf.name,
                                mime="application/pdf", key=f"pdf_{path.stem}")

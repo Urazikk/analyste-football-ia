@@ -156,4 +156,5 @@ Ordre de grandeur pour l'évaluation complète sur 80 cas, niveaux 0 à 3, avec 
 - A1 fait (intervalles, comparaison appariée). A2 fait pour Simon (65 cas). A3 et A4 (documents) prêts, mesures avec le LLM au fil du quota.
 - C2 (export PDF, `src/export.py`) et C3 (onglets « Comparer les niveaux » et « Rapports publiés ») faits par Simon. Le contenu structuré du rapport (C2) reste à Gautier.
 - Rapport : gabarit `docs/rapport/rapport.md`, schéma d'architecture, tableaux générés par `scripts/build_report.py` (3 pages aujourd'hui, limite 4). Restent : lecture des résultats, extension, échecs confirmés sur la mesure finale, parties de Gautier (agent, coûts des tâches).
+- 9 novembre (soir) : PR #11 à #15 de Gautier fusionnées (C4, C1, A2 à 80 cas, A4 outils, C2 rapport structuré). Export PDF et onglet « Rapports publiés » branchés sur `report.to_markdown` (tableaux de forme, confrontations, cartes des tirs). Cache StatsBomb : 262 matchs, 872 Mo.
 
