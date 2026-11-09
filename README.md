@@ -41,6 +41,7 @@ python eval.py              # reproduit le tableau de résultats (results/table.
 streamlit run src/app.py    # interface
 pytest                      # tests unitaires (sans API)
 python scripts/compare_levels.py   # comparaison appariée des niveaux (sans appel)
+python scripts/build_report.py     # rapport PDF (docs/rapport/), tableaux recalculés depuis results/ ; pandoc et Chrome requis
 python scripts/robustesse.py --retrieval   # robustesse de la recherche aux reformulations (sans appel)
 python eval.py --tests tests_injection.jsonl --extra-corpus tests/injection --out results/injection   # injection de consignes
 ```

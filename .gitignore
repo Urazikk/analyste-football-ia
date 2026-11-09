@@ -18,3 +18,6 @@ traces/*.jsonl
 !traces/.gitkeep
 
 .DS_Store
+
+# Brouillon du rapport, ajouté à la main (git add -f) pour le rendu final
+docs/rapport/rapport.pdf
