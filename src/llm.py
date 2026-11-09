@@ -28,7 +28,8 @@ def _get_client():
     if _client is None:
         from openai import OpenAI
 
-        _client = OpenAI(base_url=config.LLM_BASE_URL, api_key=config.LLM_API_KEY or "none")
+        # max_retries : reprise avec attente sur 429 (offre gratuite limitée en tokens par minute)
+        _client = OpenAI(base_url=config.LLM_BASE_URL, api_key=config.LLM_API_KEY or "none", max_retries=8)
     return _client
 
 
