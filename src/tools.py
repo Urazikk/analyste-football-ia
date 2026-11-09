@@ -299,7 +299,10 @@ def publish_report(home_team: str, away_team: str, title: str, content: str) -> 
     path = report_path(home, away)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps({"home_team": home, "away_team": away, "title": title, "content": content,
-                                "sections": sections}, ensure_ascii=False, indent=2, default=float),
+                                "sections": sections,
+                                # cartes des tirs du dernier match, lues par src/export.py (champ « plots »)
+                                "plots": [s["shot_map"] for s in sections["last_match"].values() if s]},
+                               ensure_ascii=False, indent=2, default=float),
                     encoding="utf-8")
     return {"published": True, "path": str(path)}
 

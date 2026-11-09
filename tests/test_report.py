@@ -23,6 +23,7 @@ def test_published_report_has_sections_computed_by_code():
     last = sec["last_match"]["away"]
     assert (last["match"]["match_id"], last["stats"]["shots"]) == (3942752, 9)  # France, demi-finale Euro 2024
     assert Path(last["shot_map"]).read_bytes()[:4] == b"\x89PNG"
+    assert rep["plots"] == [sec["last_match"]["home"]["shot_map"], last["shot_map"]]  # pour src/export.py
 
 
 def test_markdown_layout():
@@ -46,3 +47,12 @@ def test_nothing_written_when_sections_fail(tmp_path, monkeypatch):
     with pytest.raises(ValueError):
         tools.publish_report("France", "Espagne", "t", CONTENT)
     assert not tools.report_path("France", "Spain").exists()
+
+
+def test_pdf_export_includes_the_two_shot_maps():
+    from src import export
+
+    out = tools.publish_report("Argentine", "France", "Argentine - France", CONTENT)
+    rep = json.loads(Path(out["path"]).read_text(encoding="utf-8"))
+    assert len(export.report_plots(rep, Path(out["path"]).parent.parent)) == 2
+    assert export.report_to_pdf(Path(out["path"])).read_bytes()[:4] == b"%PDF"
