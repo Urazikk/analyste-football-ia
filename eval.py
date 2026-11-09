@@ -1,6 +1,6 @@
 """Reproduit le tableau de résultats : python eval.py
 
-Options : --levels 0 1 2 3  --trials 3  --limit N
+Options : --levels 0 1 2 3  --trials 3  --limit N  --resume  --table-only  --no-judge
 Sorties : results/raw_level{n}.jsonl (une ligne par cas et essai) et results/table.md.
 """
 from __future__ import annotations
@@ -41,10 +41,25 @@ def _slim(call: dict[str, Any]) -> dict[str, Any]:
     return {**call, "output": json.dumps({"ok": out.get("ok"), "ids": ids, "error": out.get("error")}, ensure_ascii=False)}
 
 
-def run_case(fn: Callable[[str], Result], case: dict[str, Any], use_judge: bool = False) -> dict[str, Any]:
+def _read_rows(path: Path) -> list[dict[str, Any]]:
+    if not path.exists():
+        return []
+    return [json.loads(l) for l in path.read_text(encoding="utf-8").splitlines() if l.strip()]
+
+
+def _write_rows(path: Path, rows: list[dict[str, Any]]) -> None:
+    path.write_text("".join(json.dumps(r, ensure_ascii=False, default=str) + "\n" for r in rows), encoding="utf-8")
+
+
+def run_case(fn: Callable[[str], Result], case: dict[str, Any], use_judge: bool = False, level: int = -1) -> dict[str, Any]:
     with tempfile.TemporaryDirectory() as state:
         os.environ["STATE_DIR"] = state
-        res = fn(case["question"])
+        try:
+            res = fn(case["question"])
+        except NotImplementedError:
+            raise
+        except Exception as e:  # quota, réseau... : le cas est noté en erreur, l'évaluation continue
+            res = Result(level=level, error=f"{type(e).__name__}: {e}"[:1000], stop_reason="error")
         row: dict[str, Any] = {"id": case["id"], "type": case["type"], **res.to_dict()}
         row["tool_calls"] = [_slim(c) for c in row["tool_calls"]]
         exp = case.get("expected", {})
@@ -83,6 +98,7 @@ def summarize(level: int, rows: list[dict[str, Any]]) -> dict[str, Any]:
     return {
         "niveau": level,
         "modèle": config.LLM_MODEL,
+        "Cas": len(first),
         "Recall@5": _mean([r.get("recall@5") for r in by("doc")]),
         "MRR": _mean([r.get("mrr") for r in by("doc")]),
         "Exactitude": _mean([r["correct"] for r in by("doc")]),
@@ -92,6 +108,7 @@ def summarize(level: int, rows: list[dict[str, Any]]) -> dict[str, Any]:
         "Ambigu": _mean([r["correct"] for r in by("ambiguous")]),
         "Succès tâches": _mean([r["correct"] for r in by("task")]),
         "pass^3": _mean([metrics.pass_hat_k(v) for v in tasks.values()]),
+        "Erreurs": sum(1 for r in rows if r.get("error")),
         "Tokens/req": _mean([r["tokens_in"] + r["tokens_out"] for r in first]),
         "Latence (s)": _mean([r["latency_s"] for r in first]),
     }
@@ -114,6 +131,9 @@ def main() -> None:
     p.add_argument("--base-url", default=None, help="remplace LLM_BASE_URL")
     p.add_argument("--types", nargs="+", default=None, help="filtre sur le type de cas (doc, absent, task, ambiguous)")
     p.add_argument("--no-judge", action="store_true", help="sans juge de fidélité (moins de tokens)")
+    p.add_argument("--resume", action="store_true",
+                   help="garde les cas déjà réussis de results/raw_level{n}.jsonl et ne relance que les manquants ou en erreur")
+    p.add_argument("--table-only", action="store_true", help="refait results/table.md depuis les résultats bruts, sans appel")
     a = p.parse_args()
     if a.model:
         config.LLM_MODEL = a.model
@@ -129,19 +149,31 @@ def main() -> None:
         if fn is None:
             print(f"Niveau {level} absent, ignoré.")
             continue
+        raw = RESULTS_DIR / f"raw_level{level}.jsonl"
+        if a.table_only:
+            ids = {c["id"] for c in tests}
+            rows = [r for r in _read_rows(raw) if r.get("model") == config.LLM_MODEL and r["id"] in ids]
+            if rows:
+                summaries.append(summarize(level, rows))
+            continue
+        done = {(r["id"], r["trial"]): r for r in _read_rows(raw)
+                if r.get("model") == config.LLM_MODEL and not r.get("error")} if a.resume else {}
         rows: list[dict[str, Any]] = []
         try:
             for case in tests:
                 n = a.trials if case["type"] == "task" else 1
                 for trial in range(n):
-                    rows.append({**run_case(fn, case, use_judge=not a.no_judge and trial == 0), "trial": trial})
-                    print(f"[niveau {level}] {case['id']} essai {trial}")
+                    if (case["id"], trial) in done:
+                        rows.append(done[(case["id"], trial)])
+                        continue
+                    row = run_case(fn, case, use_judge=not a.no_judge and trial == 0, level=level)
+                    rows.append({**row, "trial": trial, "model": config.LLM_MODEL})
+                    print(f"[niveau {level}] {case['id']} essai {trial}" + (f" ERREUR {row['error'][:80]}" if row.get("error") else ""))
+                    _write_rows(raw, rows)  # écrit après chaque cas : rien n'est perdu si le run s'arrête
         except NotImplementedError as e:
             print(f"Niveau {level} non implémenté : {e}")
             continue
-        with (RESULTS_DIR / f"raw_level{level}.jsonl").open("w", encoding="utf-8") as f:
-            for r in rows:
-                f.write(json.dumps(r, ensure_ascii=False, default=str) + "\n")
+        _write_rows(raw, rows)
         summaries.append(summarize(level, rows))
 
     if summaries:
