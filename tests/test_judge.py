@@ -36,3 +36,4 @@ def test_kappa():
 
     assert cj.kappa([(True, True), (False, False)]) == 1.0
     assert cj.kappa([(True, False), (False, True)]) < 0
+    assert cj.kappa([(True, True), (True, True)]) is None

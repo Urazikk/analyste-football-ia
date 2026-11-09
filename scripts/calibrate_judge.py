@@ -59,12 +59,13 @@ def annotate() -> None:
     print(f"{sum(isinstance(r['humain'], bool) for r in rows)}/{len(rows)} annotées.")
 
 
-def kappa(pairs: list[tuple[bool, bool]]) -> float:
+def kappa(pairs: list[tuple[bool, bool]]) -> float | None:
+    """Kappa de Cohen ; None si indéfini (une seule classe chez les deux annotateurs)."""
     n = len(pairs)
     po = sum(a == b for a, b in pairs) / n
     pa, pb = sum(a for a, _ in pairs) / n, sum(b for _, b in pairs) / n
     pe = pa * pb + (1 - pa) * (1 - pb)
-    return 1.0 if pe == 1 else (po - pe) / (1 - pe)
+    return None if pe == 1 else (po - pe) / (1 - pe)
 
 
 def calibrate() -> None:
@@ -82,8 +83,10 @@ def calibrate() -> None:
     agree = sum(a == b for a, b in pairs) / len(pairs)
     fn = sum(h and not j for h, j in pairs)
     fp = sum(not h and j for h, j in pairs)
+    k = kappa(pairs)
     report = (f"# Calibration du juge de fidélité ({JUDGE_MODEL})\n\n"
-              f"{len(pairs)} réponses annotées. Accord : {agree:.2f}. Kappa de Cohen : {kappa(pairs):.2f}. "
+              f"{len(pairs)} réponses annotées ({sum(h for h, _ in pairs)} fidèles selon l'humain). Accord : {agree:.2f}. "
+              f"Kappa de Cohen : {'indéfini (une seule classe)' if k is None else f'{k:.2f}'}. "
               f"Juge trop sévère : {fn}. Juge trop indulgent : {fp}.\n\n"
               "| Cas | Humain | Juge | Affirmations non soutenues selon le juge |\n|---|---|---|---|\n"
               + "\n".join(lines) + "\n")
