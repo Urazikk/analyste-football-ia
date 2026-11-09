@@ -22,6 +22,8 @@ LLM_MODEL = os.getenv("LLM_MODEL", "")
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "intfloat/multilingual-e5-small")
 # Juge de fidélité : autre famille que le modèle évalué, pour limiter le biais d'auto-évaluation
 JUDGE_MODEL = os.getenv("JUDGE_MODEL", "qwen/qwen3.8-27b")
+# Dossiers de documents ajoutés au corpus (ex. documents piégés du test d'injection), séparés par os.pathsep
+EXTRA_CORPUS_DIRS: list[Path] = [Path(d) for d in os.getenv("EXTRA_CORPUS_DIRS", "").split(os.pathsep) if d]
 # Tarif payant équivalent (USD par million de tokens), pour afficher le coût ; Groq gpt-oss-120b, nov. 2026.
 # On reste sur l'offre gratuite : c'est ce que coûterait la même requête en offre payante.
 PRICE_IN_PER_MTOK = float(os.getenv("PRICE_IN_PER_MTOK", "0.15"))
