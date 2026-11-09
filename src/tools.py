@@ -249,7 +249,7 @@ REGISTRY: dict[str, Tool] = {t.name: t for t in [
                                            "k": {"type": "integer", "minimum": 1, "maximum": 8}},
           "required": ["query"], "additionalProperties": False},
          "read", search_rules),
-    Tool("list_matches", "Derniers matchs disponibles (Euro 2024, Copa América 2024, Coupe du monde 2022), du "
+    Tool("list_matches", "Derniers matchs disponibles (Euro 2020 et 2024, Copa América 2024, Coupe du monde 2018 et 2022), du "
          "plus récent au plus ancien : match_id, date, compétition, équipes, score. Équipe en français ou en anglais.",
          {"type": "object", "properties": {"team": {"type": "string"},
                                            "limit": {"type": "integer", "minimum": 1, "maximum": 20}},

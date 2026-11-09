@@ -42,6 +42,8 @@ COMPETITIONS: list[tuple[int, int]] = [
     (55, 282),   # UEFA Euro 2024
     (223, 282),  # Copa America 2024
     (43, 106),   # FIFA World Cup 2022
+    (55, 43),    # UEFA Euro 2020 (joué en 2021), pour l'historique des confrontations
+    (43, 3),     # FIFA World Cup 2018, idem
 ]
 
 # Marqueurs imposés au modèle, détectés par du code dans eval.py

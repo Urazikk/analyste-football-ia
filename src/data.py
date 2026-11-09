@@ -15,7 +15,7 @@ import pandas as pd
 
 from src import config
 
-# Noms français (et variantes courantes) vers le nom StatsBomb, pour les 52 sélections des 3 compétitions.
+# Noms français (et variantes courantes) vers le nom StatsBomb, pour les sélections des 5 compétitions.
 FRENCH_NAMES: dict[str, str] = {
     "Albanie": "Albania", "Argentine": "Argentina", "Australie": "Australia", "Autriche": "Austria",
     "Belgique": "Belgium", "Bolivie": "Bolivia", "Brésil": "Brazil", "Cameroun": "Cameroon",
@@ -31,6 +31,9 @@ FRENCH_NAMES: dict[str, str] = {
     "Suisse": "Switzerland", "Tunisie": "Tunisia", "Turquie": "Turkey", "Ukraine": "Ukraine",
     "États-Unis": "United States", "USA": "United States", "Uruguay": "Uruguay", "Venezuela": "Venezuela",
     "Pays de Galles": "Wales",
+    # Euro 2020 et Coupe du monde 2018
+    "Égypte": "Egypt", "Finlande": "Finland", "Islande": "Iceland", "Nigeria": "Nigeria",
+    "Macédoine du Nord": "North Macedonia", "Russie": "Russia", "Suède": "Sweden",
 }
 
 
@@ -113,5 +116,5 @@ def resolve_team(name: str) -> str:
         return lookup[key]
     close = difflib.get_close_matches(key, lookup, n=3, cutoff=0.6)
     hint = f" Vouliez-vous dire : {', '.join(dict.fromkeys(lookup[c] for c in close))} ?" if close else ""
-    raise ValueError(f"Équipe inconnue : « {name} ». Elle n'a joué aucun match de l'Euro 2024, "
-                     f"de la Copa América 2024 ou de la Coupe du monde 2022.{hint}")
+    raise ValueError(f"Équipe inconnue : « {name} ». Elle n'a joué aucun match des compétitions retenues "
+                     f"(Euro 2020 et 2024, Copa América 2024, Coupe du monde 2018 et 2022).{hint}")
