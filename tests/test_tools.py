@@ -66,6 +66,38 @@ def test_registry_schemas_valid():
     assert [t.name for t in REGISTRY.values() if t.effect == "irreversible"] == ["publish_report"]
 
 
-def test_report_slug_uses_statsbomb_names():
-    out = tools.publish_report("France", "Espagne", "France - Espagne", CONTENT)
+# Règles métier de publish_report : une par test -------------------------------------
+
+def args(**kw):
+    return {"home_team": "France", "away_team": "Espagne", "title": "France - Espagne", "content": CONTENT} | kw
+
+
+def test_rule_ok():
+    assert tools.check_publish_report(args()) == []
+
+
+def test_rule_teams_must_exist():
+    errors = tools.check_publish_report(args(away_team="Atlantide"))
+    assert len(errors) == 1 and "Équipe inconnue" in errors[0]
+
+
+def test_rule_teams_must_differ():
+    assert tools.check_publish_report(args(away_team="france")) == [
+        "Les deux équipes de l'affiche doivent être différentes."]
+
+
+def test_rule_needs_a_number():
+    content = CONTENT.replace("2-1", "").translate(str.maketrans("", "", "0123456789")) + " " * 50
+    assert tools.check_publish_report(args(content=content)) == [
+        "Le rapport doit citer au moins un chiffre issu des données."]
+
+
+def test_rule_min_length():
+    assert "Rapport trop court" in " ".join(tools.check_publish_report(args(content="Espagne 2-1")))
+
+
+def test_rule_single_report_per_fixture_and_english_slug():
+    out = tools.publish_report(**args())
     assert out["path"].endswith("reports/france-vs-spain.json")
+    assert json.loads(Path(out["path"]).read_text(encoding="utf-8"))["away_team"] == "Spain"
+    assert tools.check_publish_report(args(away_team="Spain")) == ["Un rapport est déjà publié pour cette affiche."]

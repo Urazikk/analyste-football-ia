@@ -220,13 +220,25 @@ def publish_report(home_team: str, away_team: str, title: str, content: str) -> 
 
 
 def check_publish_report(args: dict[str, Any]) -> list[str]:
+    """Règles métier vérifiées par du code avant toute confirmation."""
+    from src import data
+
     errors = []
+    teams = []
+    for key in ("home_team", "away_team"):
+        try:
+            teams.append(data.resolve_team(args.get(key, "")))
+        except ValueError as e:
+            errors.append(str(e))
+    if len(teams) == 2 and teams[0] == teams[1]:
+        errors.append("Les deux équipes de l'affiche doivent être différentes.")
     if report_path(args.get("home_team", ""), args.get("away_team", "")).exists():
         errors.append("Un rapport est déjà publié pour cette affiche.")
-    if len(args.get("content", "").strip()) < 200:
+    content = args.get("content", "")
+    if len(content.strip()) < 200:
         errors.append("Rapport trop court (200 caractères minimum).")
-    # À compléter (Gautier) : équipes présentes dans les données, équipes différentes,
-    # chiffres cités présents dans les résultats d'outils...
+    if not re.search(r"\d", content):
+        errors.append("Le rapport doit citer au moins un chiffre issu des données.")
     return errors
 
 
