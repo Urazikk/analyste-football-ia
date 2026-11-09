@@ -20,6 +20,8 @@ LLM_BASE_URL = os.getenv("LLM_BASE_URL") or None
 LLM_API_KEY = os.getenv("LLM_API_KEY", "")
 LLM_MODEL = os.getenv("LLM_MODEL", "")
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "intfloat/multilingual-e5-small")
+# Juge de fidélité : autre famille que le modèle évalué, pour limiter le biais d'auto-évaluation
+JUDGE_MODEL = os.getenv("JUDGE_MODEL", "qwen/qwen3.8-27b")
 
 AGENT_MAX_STEPS = int(os.getenv("AGENT_MAX_STEPS", "8"))
 AGENT_MAX_TOKENS = int(os.getenv("AGENT_MAX_TOKENS", "20000"))

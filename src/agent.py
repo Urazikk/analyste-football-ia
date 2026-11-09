@@ -15,6 +15,7 @@ import jsonschema
 
 from src import config
 from src.llm import chat, parse_marks
+from src.rag import cited_ids
 from src.result import Result
 from src.tools import REGISTRY, Tool
 from src.tracing import Tracer
@@ -23,6 +24,8 @@ Confirm = Callable[[str, dict[str, Any]], bool]
 
 SYSTEM_PROMPT = f"""Tu es un analyste de football qui utilise des outils pour répondre.
 - Appuie chaque chiffre sur un résultat d'outil, n'invente rien.
+- Pour une question sur les règles du jeu, appelle search_rules et cite chaque extrait utilisé
+  par son identifiant entre crochets, par exemple [ifab-loi-11#1-position-de-hors-jeu].
 - Si un outil renvoie une erreur, corrige les arguments ou explique le blocage.
 - Si l'information est introuvable, commence par {config.ABSTAIN_MARK}.
 - Si la demande est ambiguë, commence par {config.CLARIFY_MARK} et pose une question.
@@ -89,6 +92,8 @@ def run(
     res.latency_s = time.perf_counter() - t0
     for k, v in parse_marks(res.answer).items():
         setattr(res, k, v)
+    res.retrieved, seen = search_results(res.tool_calls)
+    res.sources = [] if res.abstained else cited_ids(res.answer, seen)
     tracer.log("end", stop_reason=res.stop_reason, steps=res.steps, tokens=res.tokens,
                latency_s=res.latency_s, answer=res.answer, pending_action=res.pending_action)
     return res
@@ -125,6 +130,20 @@ def _handle_call(call: dict[str, Any], registry: dict[str, Tool], confirm: Confi
     tracer.log("tool", name=name, effect=tool.effect if tool else None,
                arguments=call["arguments"], output=out[:2000])
     return out
+
+
+def search_results(tool_calls: list[dict[str, Any]]) -> tuple[list[str], list[str]]:
+    """Morceaux du premier appel réussi à search_rules (pour Recall@5 et MRR) et tous ceux vus."""
+    first: list[str] = []
+    seen: list[str] = []
+    for call in tool_calls:
+        if call["name"] != "search_rules":
+            continue
+        out = json.loads(call.get("output") or "{}")
+        ids = [r["id"] for r in out.get("result", [])] if out.get("ok") else []
+        first = first or ids
+        seen += [i for i in ids if i not in seen]
+    return first, seen
 
 
 def confirm_pending(pending: dict[str, Any], registry: dict[str, Tool] = REGISTRY) -> str:

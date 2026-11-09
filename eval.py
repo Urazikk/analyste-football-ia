@@ -14,7 +14,7 @@ import tempfile
 from pathlib import Path
 from typing import Any, Callable
 
-from src import agent, config, llm, metrics, rag
+from src import agent, config, judge, llm, metrics, rag
 from src.config import RESULTS_DIR, ROOT, SEED
 from src.result import Result
 
@@ -32,11 +32,21 @@ def load_tests(path: Path = ROOT / "tests.jsonl") -> list[dict[str, Any]]:
         return [json.loads(line) for line in f if line.strip()]
 
 
-def run_case(fn: Callable[[str], Result], case: dict[str, Any]) -> dict[str, Any]:
+def _slim(call: dict[str, Any]) -> dict[str, Any]:
+    """Sortie de search_rules réduite aux identifiants : pas de texte IFAB dans results/ (licence)."""
+    if call.get("name") != "search_rules":
+        return call
+    out = json.loads(call.get("output") or "{}")
+    ids = [r["id"] for r in out.get("result", [])] if out.get("ok") else None
+    return {**call, "output": json.dumps({"ok": out.get("ok"), "ids": ids, "error": out.get("error")}, ensure_ascii=False)}
+
+
+def run_case(fn: Callable[[str], Result], case: dict[str, Any], use_judge: bool = False) -> dict[str, Any]:
     with tempfile.TemporaryDirectory() as state:
         os.environ["STATE_DIR"] = state
         res = fn(case["question"])
         row: dict[str, Any] = {"id": case["id"], "type": case["type"], **res.to_dict()}
+        row["tool_calls"] = [_slim(c) for c in row["tool_calls"]]
         exp = case.get("expected", {})
         if case["type"] == "doc":
             rel = exp.get("relevant_sources", [])
@@ -44,6 +54,11 @@ def run_case(fn: Callable[[str], Result], case: dict[str, Any]) -> dict[str, Any
             row["mrr"] = metrics.mrr(res.retrieved, rel) if res.retrieved else None
             row["correct"] = metrics.keywords_match(res.answer, exp.get("keywords", [])) and not res.abstained
             row["cited"] = metrics.cites_relevant(res.sources, rel)
+            if use_judge and res.level > 0 and not res.abstained:
+                # réponse sans citation : invérifiable, donc non fidèle
+                v = judge.judge_faithfulness(case["question"], res.answer, judge.passages_for(res.sources))
+                row["faithful"] = v["faithful"] if res.sources else False
+                row["judge_unsupported"], row["judge_tokens"] = v["unsupported"], v["tokens"]
         elif case["type"] == "absent":
             row["correct"] = res.abstained
         elif case["type"] == "ambiguous":
@@ -72,6 +87,7 @@ def summarize(level: int, rows: list[dict[str, Any]]) -> dict[str, Any]:
         "MRR": _mean([r.get("mrr") for r in by("doc")]),
         "Exactitude": _mean([r["correct"] for r in by("doc")]),
         "Citation": _mean([r.get("cited") for r in by("doc")]) if level > 0 else None,
+        "Fidélité": _mean([r.get("faithful") for r in by("doc")]) if level > 0 else None,
         "Abstention": _mean([r["correct"] for r in by("absent")]),
         "Ambigu": _mean([r["correct"] for r in by("ambiguous")]),
         "Succès tâches": _mean([r["correct"] for r in by("task")]),
@@ -97,6 +113,7 @@ def main() -> None:
     p.add_argument("--model", default=None, help="remplace LLM_MODEL (benchmark de modèles)")
     p.add_argument("--base-url", default=None, help="remplace LLM_BASE_URL")
     p.add_argument("--types", nargs="+", default=None, help="filtre sur le type de cas (doc, absent, task, ambiguous)")
+    p.add_argument("--no-judge", action="store_true", help="sans juge de fidélité (moins de tokens)")
     a = p.parse_args()
     if a.model:
         config.LLM_MODEL = a.model
@@ -117,7 +134,7 @@ def main() -> None:
             for case in tests:
                 n = a.trials if case["type"] == "task" else 1
                 for trial in range(n):
-                    rows.append({**run_case(fn, case), "trial": trial})
+                    rows.append({**run_case(fn, case, use_judge=not a.no_judge and trial == 0), "trial": trial})
                     print(f"[niveau {level}] {case['id']} essai {trial}")
         except NotImplementedError as e:
             print(f"Niveau {level} non implémenté : {e}")

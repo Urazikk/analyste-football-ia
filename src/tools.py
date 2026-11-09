@@ -27,6 +27,15 @@ class Tool:
                              "parameters": self.parameters}}
 
 
+# Outil de lecture des lois du jeu (RAG du niveau 1) ------------------------------
+
+def search_rules(query: str, k: int = 5) -> list[dict[str, Any]]:
+    """Extraits des lois du jeu (IFAB) et de Wikipédia les plus proches de la question."""
+    from src import rag
+
+    return [{"id": c.id, "title": c.title, "text": c.text} for c, _ in rag.search(query, k)]
+
+
 # Outils de lecture (StatsBomb) --------------------------------------------------
 
 def list_matches(team: str | None = None) -> list[dict[str, Any]]:
@@ -77,6 +86,12 @@ def check_publish_report(args: dict[str, Any]) -> list[str]:
 
 
 REGISTRY: dict[str, Tool] = {t.name: t for t in [
+    Tool("search_rules", "Cherche dans les lois du jeu (IFAB 2026/27) et Wikipédia. Renvoie des extraits avec leur "
+         "identifiant, à citer entre crochets dans la réponse. À utiliser pour toute question sur les règles.",
+         {"type": "object", "properties": {"query": {"type": "string", "minLength": 3},
+                                           "k": {"type": "integer", "minimum": 1, "maximum": 8}},
+          "required": ["query"], "additionalProperties": False},
+         "read", search_rules),
     Tool("list_matches", "Liste les matchs disponibles, filtrables par équipe.",
          {"type": "object", "properties": {"team": {"type": "string"}}, "additionalProperties": False},
          "read", list_matches),

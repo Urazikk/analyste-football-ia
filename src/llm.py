@@ -38,9 +38,10 @@ def chat(
     tools: list[dict[str, Any]] | None = None,
     temperature: float = 0.0,
     max_tokens: int = 1024,
+    model: str | None = None,
 ) -> LLMResponse:
     """Un appel au modèle. Les outils sont au format OpenAI (type=function)."""
-    kwargs: dict[str, Any] = {"model": config.LLM_MODEL, "messages": messages,
+    kwargs: dict[str, Any] = {"model": model or config.LLM_MODEL, "messages": messages,
                               "temperature": temperature, "max_tokens": max_tokens}
     if tools:
         kwargs["tools"] = tools
