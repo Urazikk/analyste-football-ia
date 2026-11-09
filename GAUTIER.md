@@ -92,7 +92,7 @@ python eval.py --levels 2 --types task           # succès et pass^3 sur 3 essai
 python eval.py --levels 2 --types task --model <autre> --base-url <autre url>
 ```
 
-- Benchmark LLM au niveau 2 : Mistral Small, Llama 70B via Groq, un modèle Ollama. Succès, pass^3, tokens, latence dans `docs/decisions.md`.
+- Benchmark LLM au niveau 2 : gpt-oss-120b (modèle retenu, Groq), qwen/qwen3.8-27b (Groq), un modèle Ollama. Clé Groq gratuite sur console.groq.com. Succès, pass^3, tokens, latence dans `docs/decisions.md`.
 - Noter les échecs observés (outil mal appelé, boucle qui tourne, chiffre inventé) : ils servent à choisir l'extension du niveau 3.
 
 ## Calendrier

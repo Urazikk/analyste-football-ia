@@ -101,7 +101,7 @@ traces/
 
 ## Décisions à fixer (à compléter)
 - Compétitions StatsBomb : Euro 2024 (55, 282), Copa América 2024 (223, 282), CdM 2022 (43, 106). Pas de compétition future dans l'open data : le rapport d'avant-match porte sur une affiche donnée par l'utilisateur, à partir des derniers matchs disponibles des deux sélections.
-- Modèle LLM : Mistral Small via API compatible OpenAI (provisoire). Petit benchmark au niveau 2 (10 tâches) contre Llama 70B via Groq et un modèle Ollama, consigné dans docs/decisions.md. Le tableau des niveaux utilise un seul modèle.
+- Modèle LLM : openai/gpt-oss-120b via Groq (poids ouverts, offre gratuite), choisi contre qwen3.8-27b sur les niveaux 0 et 1 (results/choix-llm/). Mistral Small abandonné (offre Free sans API). Benchmark au niveau 2 (10 tâches) contre Qwen et un modèle Ollama, consigné dans docs/decisions.md. Le tableau des niveaux utilise un seul modèle.
 - Corpus RAG : lois du jeu IFAB en français, téléchargées par un script, non commitées (licence) ; Wikipédia en complément.
 - Modèle d'embeddings : multilingual-e5-small, recherche dense seule, morceaux de 600 caractères (Recall@5 1,00, MRR 0,89 ; bge-m3 et l'hybride n'aident pas). Pas de seuil d'abstention sur le score. Détail dans docs/decisions.md et results/retrieval.md.
 - Extension niveau 3 : à choisir d'après un défaut mesuré au niveau 2.

@@ -43,6 +43,7 @@ def test_search_modes(monkeypatch):
 def test_cited_ids_keeps_only_retrieved():
     text = "Oui [a#hors-jeu], voir aussi [inventé#x] et [a#hors-jeu]."
     assert rag.cited_ids(text, ["a#hors-jeu", "b#ballon"]) == ["a#hors-jeu"]
+    assert rag.cited_ids("Oui【b#ballon】.", ["b#ballon"]) == ["b#ballon"]
 
 
 def _patch(monkeypatch, index: rag.Index) -> list:

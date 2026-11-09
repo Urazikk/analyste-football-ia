@@ -214,7 +214,7 @@ def search(query: str, k: int = 5, mode: str = SEARCH_MODE) -> list[tuple[Chunk,
 
 
 ABSTAIN_THRESHOLD = 0.0  # désactivé : avec e5-small, les scores des cas absents recouvrent ceux des cas doc
-CITE_RE = re.compile(r"\[([a-z0-9][a-z0-9#/\-]*)\]")
+CITE_RE = re.compile(r"[\[【]([a-z0-9][a-z0-9#/\-]*)[\]】]")  # [id] ou 【id】 (gpt-oss)
 
 SYSTEM_PROMPT = f"""Tu es un analyste de football rigoureux. Tu réponds en français, brièvement,
 uniquement à partir des extraits fournis.
