@@ -291,12 +291,19 @@ def report_path(home_team: str, away_team: str):
 
 
 def publish_report(home_team: str, away_team: str, title: str, content: str) -> dict[str, Any]:
-    """Publie le rapport d'avant-match d'une affiche. Irréversible."""
+    """Publie le rapport d'avant-match d'une affiche, avec ses sections chiffrées (src/report.py). Irréversible."""
+    from src import report
+
     home, away = _team_or_raw(home_team), _team_or_raw(away_team)
+    sections = report.build_sections(home, away)  # avant d'écrire : rien n'est publié si le calcul échoue
     path = report_path(home, away)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps({"home_team": home, "away_team": away, "title": title,
-                                "content": content}, ensure_ascii=False, indent=2), encoding="utf-8")
+    path.write_text(json.dumps({"home_team": home, "away_team": away, "title": title, "content": content,
+                                "sections": sections,
+                                # cartes des tirs du dernier match, lues par src/export.py (champ « plots »)
+                                "plots": [s["shot_map"] for s in sections["last_match"].values() if s]},
+                               ensure_ascii=False, indent=2, default=float),
+                    encoding="utf-8")
     return {"published": True, "path": str(path)}
 
 
@@ -364,7 +371,8 @@ REGISTRY: dict[str, Tool] = {t.name: t for t in [
          {"type": "object", "properties": {"match_id": {"type": "integer"}, "team": {"type": "string"}},
           "required": ["match_id", "team"], "additionalProperties": False},
          "compute", plot_shots),
-    Tool("publish_report", "Publie le rapport d'avant-match d'une affiche. Action irréversible, confirmation requise.",
+    Tool("publish_report", "Publie le rapport d'avant-match d'une affiche. Action irréversible, confirmation requise. "
+         "content est ton analyse ; le code ajoute lui-même la forme, les confrontations et les cartes des tirs.",
          {"type": "object", "properties": {"home_team": {"type": "string"}, "away_team": {"type": "string"},
                                            "title": {"type": "string"}, "content": {"type": "string"}},
           "required": ["home_team", "away_team", "title", "content"], "additionalProperties": False},
