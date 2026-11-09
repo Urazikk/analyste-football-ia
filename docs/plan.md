@@ -41,6 +41,23 @@
 - **Petits effectifs** : 20 cas doc et 10 tâches, donc un cas vaut 5 à 10 points de pourcentage. À écrire dans le rapport, ne pas surinterpréter les écarts.
 - **Coût et quota de l'API** : pass^3 sur 10 tâches et 4 niveaux, plus le benchmark de modèles. Estimer les tokens sur 5 cas avant de lancer la totalité.
 
+### Suivi des écarts (9 novembre)
+
+| # | État |
+|---|---|
+| 1 | ouvert : rien de Gautier dans le dépôt, message envoyé |
+| 2 | résolu : Groq gratuit (gpt-oss-120b), mesures des niveaux 0 et 1 faites |
+| 3 | résolu : outil `search_rules` |
+| 4 | résolu : juge de fidélité calibré (30 annotations, kappa 1,00) |
+| 5 | ouvert (Gautier) |
+| 6 | résolu : PR #1 fusionnée |
+| 7 | contourné : benchmark contre qwen3.8-27b sur Groq et Ollama en local |
+| 8 | résolu : extraits cités, abstention, coût équivalent, trace dans l'interface |
+| 9 | résolu : bornes de versions, `requirements-lock.txt`, torch processeur documenté |
+| 10 | résolu : légendes retirées, recherche inchangée |
+| 11 | résolu |
+| 12 (nouveau) | quota gratuit de 200 000 tokens par jour : évaluation étalée avec `--resume` |
+
 ## 2. Plan
 
 Répartition 50/50 conservée : Simon pour le texte (RAG, juge, interface côté sources), Gautier pour les données et l'agent. Les deux pour l'extension, les échecs, le rapport et la vidéo.
