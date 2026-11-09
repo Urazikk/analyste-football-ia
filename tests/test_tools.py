@@ -29,7 +29,8 @@ def test_list_matches_sorted_and_resolved():
     assert out[0] == {"match_id": 3943043, "date": "2024-07-14", "competition": "Europe - UEFA Euro",
                       "stage": "Final", "home_team": "Spain", "away_team": "England", "score": "2-1"}
     assert len(out) == 10 and [m["date"] for m in out] == sorted((m["date"] for m in out), reverse=True)
-    assert len(REGISTRY["list_matches"].fn(team="Spain", limit=20)) == 11  # Euro 2024 (7) + CdM 2022 (4)
+    # Euro 2024 (7) + CdM 2022 (4) + Euro 2020 (6) + CdM 2018 (4) = 21, plafonné à 20
+    assert len(REGISTRY["list_matches"].fn(team="Spain", limit=20)) == 20
     assert len(json.dumps(out)) < 8000
 
 

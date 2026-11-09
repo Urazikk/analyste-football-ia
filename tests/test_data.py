@@ -44,7 +44,7 @@ def test_resolve_team_unknown_with_suggestion(offline):
     with pytest.raises(ValueError, match="Vouliez-vous dire : France"):
         data.resolve_team("Fance")
     with pytest.raises(ValueError, match="Équipe inconnue"):
-        data.resolve_team("Nigeria")
+        data.resolve_team("Atlantide")
 
 
 @needs_cache
@@ -55,7 +55,7 @@ def test_all_teams_have_french_name(offline):
 @needs_cache
 def test_matches_and_events_from_cache(offline):
     m = data.all_matches()
-    assert len(m) == 147 and m["match_date"].is_monotonic_decreasing
+    assert len(m) == 262 and m["match_date"].is_monotonic_decreasing
     assert (data.events(MATCH)["type"] == "Shot").sum() == 15
 
 
