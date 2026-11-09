@@ -144,6 +144,50 @@ def tab_reports() -> None:
                                mime="application/pdf", key=f"pdf_{path.stem}")
 
 
+@st.cache_resource(show_spinner=False)
+def prediction_teams() -> list[str]:
+    from src import predict
+
+    hist, _ = predict._model()
+    last = hist.pre[hist.pre["date"] >= "2022-01-01"]
+    return sorted(set(last["home_team"]) | set(last["away_team"]))
+
+
+def tab_prediction() -> None:
+    """Pronostic d'une affiche future : Elo, Poisson et 10 000 matchs simulés, avec l'animation."""
+    from src import animation, predict
+
+    if not predict.cache_path().exists():
+        st.info("Résultats internationaux absents : lancer `python scripts/eval_prediction.py` (téléchargement puis évaluation).")
+        return
+    teams = prediction_teams()
+    c1, c2, c3 = st.columns([2, 2, 1])
+    home = c1.selectbox("Équipe 1 (à domicile)", teams, index=teams.index("France") if "France" in teams else 0,
+                        format_func=animation.french)
+    away = c2.selectbox("Équipe 2", teams, index=teams.index("Spain") if "Spain" in teams else 1,
+                        format_func=animation.french)
+    neutral = c3.checkbox("Terrain neutre", value=True)
+    if st.button("Simuler 10 000 matchs", key="pred_go") and home != away:
+        with st.spinner("Simulation et animation..."):
+            res = predict.simulate(home, away, neutral)
+            video = animation.animate_match(home, away, neutral, config.state_dir() / "animations" / f"{home}-{away}.mp4")
+        st.session_state["pred"] = (res, str(video))
+    if "pred" not in st.session_state:
+        st.caption("Modèle évalué sur 1 803 matchs depuis 2025 : voir results/prediction/backtest.md.")
+        return
+    res, video = st.session_state["pred"]
+    a, b = st.columns([1, 1])
+    with a:
+        st.metric(f"Victoire {animation.french(res['home'])}", f"{res['home_win']:.0%}")
+        st.metric("Match nul", f"{res['draw']:.0%}")
+        st.metric(f"Victoire {animation.french(res['away'])}", f"{res['away_win']:.0%}")
+        st.caption("Scores les plus probables : " + ", ".join(f"{s['score']} ({s['p']:.0%})" for s in res["likely_scores"]))
+        st.caption(f"Elo {res['elo_home']} contre {res['elo_away']} · buts attendus {res['expected_goals'][0]} - "
+                   f"{res['expected_goals'][1]} · {res['note']}")
+    with b:
+        st.video(video)
+
+
 def tab_question() -> None:
     question = st.text_area("Question")
 
@@ -192,10 +236,12 @@ st.title("Analyste de football")
 
 level = st.sidebar.radio("Niveau (onglet Question)", list(LEVELS), format_func=LEVELS.get)
 st.sidebar.caption(f"Modèle : {config.LLM_MODEL}")
-tab_q, tab_c, tab_r = st.tabs(["Question", "Comparer les niveaux", "Rapports publiés"])
+tab_q, tab_c, tab_p, tab_r = st.tabs(["Question", "Comparer les niveaux", "Pronostic", "Rapports publiés"])
 with tab_q:
     tab_question()
 with tab_c:
     tab_compare()
+with tab_p:
+    tab_prediction()
 with tab_r:
     tab_reports()

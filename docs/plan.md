@@ -158,3 +158,15 @@ Ordre de grandeur pour l'évaluation complète sur 80 cas, niveaux 0 à 3, avec 
 - Rapport : gabarit `docs/rapport/rapport.md`, schéma d'architecture, tableaux générés par `scripts/build_report.py` (3 pages aujourd'hui, limite 4). Restent : lecture des résultats, extension, échecs confirmés sur la mesure finale, parties de Gautier (agent, coûts des tâches).
 - 9 novembre (soir) : PR #11 à #15 de Gautier fusionnées (C4, C1, A2 à 80 cas, A4 outils, C2 rapport structuré). Export PDF et onglet « Rapports publiés » branchés sur `report.to_markdown` (tableaux de forme, confrontations, cartes des tirs). Cache StatsBomb : 262 matchs, 872 Mo.
 
+## 4. Pronostic de matchs futurs (option B, décidée le 9 novembre)
+
+Vision de Simon : un analyste qui pronostique l'issue d'un match. Ajout au produit, la structure imposée par le sujet ne change pas ; l'extension reste choisie le 22 d'après les défauts du niveau 2.
+
+| Tâche | Qui | État |
+|---|---|---|
+| Modèle : Elo, buts de Poisson, simulation de Monte-Carlo (`src/predict.py`), données internationales en cache | Simon | fait |
+| Évaluation sur le passé : 1 803 matchs depuis 2025, quatre références, calibration (`scripts/eval_prediction.py`) | Simon | fait : Brier 0,497 contre 0,667 (uniforme) |
+| Animation verticale des simulations (`src/animation.py`) et onglet « Pronostic » de l'interface | Simon | fait |
+| Outil `simulate_match` pour l'agent (effet compute), noms français et StatsBomb vers ceux du jeu international, section « Pronostic » du rapport d'avant-match et de son PDF | Gautier | à faire, pour le 18 nov. |
+| Option C (LLM seul contre agent avec simulation, sur des matchs postérieurs à ses connaissances) | ensemble | décision le 18 nov. selon l'avancement |
+

@@ -56,3 +56,13 @@ def test_simulate_unknown_team(monkeypatch):
     assert out["home_win"] > out["away_win"] and out["simulations"] == 2000
     with pytest.raises(ValueError, match="inconnue"):
         predict.simulate("A", "Atlantide")
+
+
+def test_animation_writes_a_video(monkeypatch, tmp_path):
+    from src import animation
+
+    hist = predict.run_elo(_df([("2020-01-01", "A", "B", 1, 0, "Friendly", False)]))
+    monkeypatch.setattr(predict, "_model", lambda: (hist, (0.2, 0.8)))
+    out = animation.animate_match("A", "B", neutral=True, out=tmp_path / "a.gif", n=200, seconds=0.5, fps=4, hold=0.25)
+    assert out.exists() and out.stat().st_size > 1000
+    assert len(animation.schedule(10_000, 100)) > 50
