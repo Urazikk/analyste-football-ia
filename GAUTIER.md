@@ -14,7 +14,8 @@ git clone https://github.com/Urazikk/analyste-football-ia.git
 cd analyste-football-ia
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env          # mettre la clé Mistral
+cp .env.example .env          # mettre ta clé Groq gratuite (console.groq.com) dans LLM_API_KEY
+python scripts/build_corpus.py --no-wiki --ifab-download   # lois IFAB en local (non versionnées)
 git config user.name "Ton Nom"
 git config user.email "ton@email"
 pytest                        # tout doit passer
@@ -29,6 +30,14 @@ Lis avant de coder : `CLAUDE.md` (règles du projet), `docs/protocole.md` (proto
 - Aucune clé d'API dans le code. Elle va dans `.env` uniquement.
 - Type hints, code simple, un test pytest par règle métier. Les tests ne doivent pas appeler le LLM : utiliser le faux LLM de `tests/test_agent.py`.
 - Chaque choix chiffré (nombre de matchs analysés, bornes de l'agent, modèle) va dans `docs/decisions.md` avec sa mesure.
+
+## Budget : gratuit uniquement
+
+- LLM : `openai/gpt-oss-120b` via Groq, offre gratuite. Limites : 8 000 tokens par minute et 200 000 tokens par jour, par compte. Utilise ta propre clé : ton quota s'ajoute à celui de Simon.
+- Un cas du niveau 2 coûte environ 4 000 tokens ; une tâche avec pass^3 en coûtera bien plus. Compter plusieurs jours pour l'évaluation complète.
+- `python eval.py ... --resume` ne relance que les cas manquants ou en erreur : lancer, laisser le quota s'épuiser, reprendre le lendemain. `--limit 3` pour tester avant de tout lancer.
+- `pytest` n'appelle jamais l'API (faux LLM) : développer et tester sans consommer de quota.
+- Benchmark de modèles : `qwen/qwen3.8-27b` sur Groq (quota séparé par modèle) et un modèle Ollama en local (gratuit, sans quota).
 
 ## Contexte déjà décidé
 
@@ -80,6 +89,7 @@ Fini quand : un test pytest par règle.
 ## 5. Jeu de test : 10 tâches et 5 cas ambigus (`tests.jsonl`)
 
 Format dans `docs/protocole.md`, exemples `task-01`, `amb-01`, `amb-02` déjà présents.
+Les 20 cas `doc` et 5 cas `absent` de Simon sont écrits : ajouter tes lignes à la suite, sans toucher aux leurs. `pytest` vérifie que les identifiants restent uniques.
 - **10 tâches multi-étapes**, l'état final vérifié par `metrics.check_state`. Varier : rapport simple, rapport avec un chiffre précis (`must_contain`), équipe écrite en français, équipe inexistante (attendu : `no_report`), demande d'analyse **sans** demande de publication (attendu : `no_report`).
 - **5 cas ambigus ou hors sujet** : `clarify` (« le dernier match », sans équipe) ou `refuse` (hors football).
 - Vérifier les réponses attendues à la main dans les données, avant de lancer le modèle.
@@ -91,7 +101,7 @@ python eval.py --levels 2 --types task           # succès et pass^3 sur 3 essai
 python eval.py --levels 2 --types task --model <autre> --base-url <autre url>
 ```
 
-- Benchmark LLM au niveau 2 : Mistral Small, Llama 70B via Groq, un modèle Ollama. Succès, pass^3, tokens, latence dans `docs/decisions.md`.
+- Benchmark LLM au niveau 2 : gpt-oss-120b (modèle retenu, Groq), qwen/qwen3.8-27b (Groq), un modèle Ollama. Clé Groq gratuite sur console.groq.com. Succès, pass^3, tokens, latence dans `docs/decisions.md`.
 - Noter les échecs observés (outil mal appelé, boucle qui tourne, chiffre inventé) : ils servent à choisir l'extension du niveau 3.
 
 ## Calendrier

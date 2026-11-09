@@ -30,7 +30,8 @@ Exemple de ligne :
 |---|---|
 | Recall@5, MRR | sur les cas `doc`, à partir de `Result.retrieved` (niveaux 1 et plus) |
 | Exactitude | cas `doc` : règles par mots clés. Juge LLM à calibrer sur 20 cas annotés si les règles ne suffisent pas |
-| Citation / fidélité | source pertinente citée ; fidélité aux sources à mesurer par juge LLM (à faire) |
+| Citation | source pertinente citée (id attendu parmi les sources de la réponse) |
+| Fidélité | cas `doc` répondus (sans abstention), niveaux 1 et plus : juge LLM (`src/judge.py`, `JUDGE_MODEL`, autre famille que le modèle évalué) qui vérifie que chaque affirmation est soutenue par les extraits cités. Réponse sans citation : non fidèle. Juge calibré sur 20 réponses annotées à la main (`scripts/calibrate_judge.py`) |
 | Abstention | part des cas `absent` où le système s'abstient |
 | Ambigu | part des cas `ambiguous` traités comme attendu |
 | Succès tâches | cas `task`, premier essai |

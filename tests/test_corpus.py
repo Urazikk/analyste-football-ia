@@ -107,3 +107,36 @@ def test_law_ranges_from_outline():
 def test_strip_repeated_lines():
     pages = [f"Lois du Jeu 2025/26\ncontenu {i}" for i in range(20)]
     assert bc.strip_repeated_lines(pages)[3] == "contenu 3"
+
+
+def _separator_pdf() -> list[str]:
+    pages = ["Sommaire\nLoi 1 Terrain\nLoi 2 Ballon"]
+    for n in range(1, 18):
+        pages += [f"Loi\n{n}", f"{len(pages) + 2}\nLois du Jeu 2026/27 | Loi {n} | Titre {n}\n1. Partie\nTexte {n}."]
+    return pages + ["99", "Protocole\nd'assistance\nvidéo à\nl'arbitrage", "1. Principes\nTexte VAR.\n" + "ligne\n" * 10, "Glossaire"]
+
+
+def test_separator_ranges():
+    pages = _separator_pdf()
+    seps = bc.separator_ranges(pages)
+    assert sorted(seps) == list(range(1, 18))
+    start, stop = seps[11]
+    assert "Texte 11." in "".join(pages[start:stop]) and "Texte 12." not in "".join(pages[start:stop])
+    assert bc.law_title(pages[start:stop], 11) == "Titre 11"
+    assert "Lois du Jeu" not in bc.clean_page(pages[start])
+    title, body = bc.var_protocol(pages, seps[17][1])
+    assert title.startswith("Protocole") and "Texte VAR." in body and "Glossaire" not in body
+
+
+def test_separator_ranges_missing_law():
+    assert bc.separator_ranges(["Loi\n1", "texte"]) == {}
+
+
+def test_law_sections_ignores_numbered_lists():
+    body = "1. Principes\nIntro.\n1. Un arbitre assistant vidéo est un officiel de match ayant accès\nsuite\n2. Procédures\nFin."
+    assert [t for t, _ in bc.law_sections(body)] == ["1. Principes", "2. Procédures"]
+
+
+def test_split_text_never_exceeds_max():
+    long_list = "\n".join(f"• élément {i} sans ponctuation finale" for i in range(80))
+    assert all(len(c) <= 300 for c in rag.split_text(long_list, 300))

@@ -58,3 +58,38 @@ def test_invalid_arguments():
     llm = scripted([LLMResponse("", [call("act", x="pas un entier")]), LLMResponse("ok")])
     res = agent.run("q", llm=llm, registry=REG, confirm=lambda n, a: True)
     assert "Arguments invalides" in res.tool_calls[0]["output"]
+
+
+def test_search_rules_sources_and_retrieved(monkeypatch):
+    from src import rag, tools
+
+    hits = [(rag.Chunk("ifab-loi-03#1", "ifab-loi-03", "Loi 3", "", "onze joueurs"), 0.9),
+            (rag.Chunk("wiki-x#a", "wiki-x", "X", "", "autre"), 0.8)]
+    monkeypatch.setattr(rag, "search", lambda q, k=5, mode=None: hits[:k])
+    llm = scripted([LLMResponse("", [call("search_rules", query="nombre de joueurs")]),
+                    LLMResponse("Onze joueurs [ifab-loi-03#1], pas [inventé#z].")])
+    res = agent.run("q", llm=llm, registry=tools.REGISTRY)
+    assert res.retrieved == ["ifab-loi-03#1", "wiki-x#a"]
+    assert res.sources == ["ifab-loi-03#1"]
+
+
+def test_api_tool_validation_error_is_returned_to_model():
+    seen = []
+
+    def llm(messages, tools=None):
+        seen.append(messages[-1]["content"])
+        if len(seen) == 1:
+            raise RuntimeError("Error code: 400 - Tool call validation failed: `/k`: maximum: got 10, want 8")
+        return LLMResponse("corrigé")
+
+    res = agent.run("q", llm=llm, registry=REG)
+    assert res.answer == "corrigé" and res.steps == 2
+    assert "refusé" in seen[1]
+
+
+def test_api_other_error_stops_cleanly():
+    def llm(messages, tools=None):
+        raise RuntimeError("Error code: 500 - panne")
+
+    res = agent.run("q", llm=llm, registry=REG)
+    assert res.stop_reason == "llm_error" and "panne" in res.error
