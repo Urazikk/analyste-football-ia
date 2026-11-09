@@ -171,6 +171,63 @@ def plot_shots(match_id: int, team: str) -> dict[str, Any]:
     return {"path": str(path), "shots": len(shots), "goals": int((shots["shot_outcome"] == "Goal").sum())}
 
 
+def _team_view(m: Any, team: str) -> dict[str, Any]:
+    """Un match vu par une équipe : adversaire, score, résultat, xG, tirs au but éventuels."""
+    from src import data
+
+    home = team == m["home_team"]
+    gf, ga = (int(m["home_score"]), int(m["away_score"]))[:: 1 if home else -1]
+    ev = data.events(int(m["match_id"]))
+    shots = ev[ev["type"] == "Shot"]
+    play = shots[shots["period"] != SHOOTOUT]
+    xg = play.groupby("team")["shot_statsbomb_xg"].sum()
+    opp = m["away_team"] if home else m["home_team"]
+    row = {"match_id": int(m["match_id"]), "date": m["match_date"].strftime("%Y-%m-%d"),
+           "competition": m["competition"], "stage": m["competition_stage"], "opponent": opp,
+           "score": f"{gf}-{ga}", "result": "V" if gf > ga else "D" if gf < ga else "N",
+           "xg_for": round(float(xg.get(team, 0.0)), 2), "xg_against": round(float(xg.get(opp, 0.0)), 2)}
+    tab = shots[(shots["period"] == SHOOTOUT) & (shots["shot_outcome"] == "Goal")].groupby("team").size()
+    if not tab.empty:  # le score officiel ne compte pas les tirs au but
+        row["penalties"] = f"{int(tab.get(team, 0))}-{int(tab.get(opp, 0))}"
+    return row
+
+
+def team_form(team: str, n: int = 5) -> dict[str, Any]:
+    """Forme d'une équipe : ses n derniers matchs disponibles, du plus récent au plus ancien."""
+    from src import data
+
+    name = data.resolve_team(team)
+    m = data.all_matches()
+    m = m[(m["home_team"] == name) | (m["away_team"] == name)].head(n)
+    games = [_team_view(row, name) for _, row in m.iterrows()]
+    res = [g["result"] for g in games]
+    return {"team": name, "matches": games,
+            "summary": {"played": len(games), "won": res.count("V"), "drawn": res.count("N"), "lost": res.count("D"),
+                        "goals_for": sum(int(g["score"].split("-")[0]) for g in games),
+                        "goals_against": sum(int(g["score"].split("-")[1]) for g in games),
+                        "xg_for": round(sum(g["xg_for"] for g in games), 2),
+                        "xg_against": round(sum(g["xg_against"] for g in games), 2)},
+            "note": "résultat sur le score officiel (tirs au but à part) ; V victoire, N nul, D défaite"}
+
+
+def head_to_head(team_a: str, team_b: str) -> dict[str, Any]:
+    """Confrontations directes entre deux équipes dans les données, de la plus récente à la plus ancienne."""
+    from src import data
+
+    a, b = data.resolve_team(team_a), data.resolve_team(team_b)
+    if a == b:
+        raise ValueError("Les deux équipes doivent être différentes.")
+    m = data.all_matches()
+    m = m[((m["home_team"] == a) & (m["away_team"] == b)) | ((m["home_team"] == b) & (m["away_team"] == a))]
+    games = [_team_view(row, a) for _, row in m.iterrows()]
+    res = [g["result"] for g in games]
+    return {"team_a": a, "team_b": b, "matches": games,
+            "summary": {"played": len(games), f"{a}_won": res.count("V"), "drawn": res.count("N"),
+                        f"{b}_won": res.count("D")},
+            "note": f"scores et résultats vus par {a} ; aucune confrontation si la liste est vide "
+                    "(Euro 2020 et 2024, Copa América 2024, Coupe du monde 2018 et 2022 seulement)"}
+
+
 def _draw_half_pitch(ax: Any) -> None:
     """Moitié offensive d'un terrain StatsBomb (120 x 80), but en haut."""
     kw = {"color": "#555", "lw": 1, "fill": False}
@@ -268,6 +325,17 @@ REGISTRY: dict[str, Tool] = {t.name: t for t in [
          {"type": "object", "properties": {"match_id": {"type": "integer"}, "team": {"type": "string"}},
           "required": ["match_id", "team"], "additionalProperties": False},
          "compute", team_stats),
+    Tool("team_form", "Forme d'une équipe : ses n derniers matchs disponibles (adversaire, score, V/N/D, xG pour et "
+         "contre, tirs au but) et le bilan (victoires, nuls, défaites, buts, xG).",
+         {"type": "object", "properties": {"team": {"type": "string"},
+                                           "n": {"type": "integer", "minimum": 1, "maximum": 10}},
+          "required": ["team"], "additionalProperties": False},
+         "compute", team_form),
+    Tool("head_to_head", "Confrontations directes entre deux équipes dans les données (Euro 2020 et 2024, Copa "
+         "América 2024, Coupe du monde 2018 et 2022) : scores, résultats vus par team_a, bilan.",
+         {"type": "object", "properties": {"team_a": {"type": "string"}, "team_b": {"type": "string"}},
+          "required": ["team_a", "team_b"], "additionalProperties": False},
+         "compute", head_to_head),
     Tool("plot_shots", "Carte des tirs d'une équipe sur un match (image PNG). Retourne le chemin, tirs et buts.",
          {"type": "object", "properties": {"match_id": {"type": "integer"}, "team": {"type": "string"}},
           "required": ["match_id", "team"], "additionalProperties": False},
