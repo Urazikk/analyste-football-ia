@@ -34,10 +34,19 @@ def mrr(retrieved: list[str], relevant: list[str]) -> float:
     return 0.0
 
 
+def term_in(term: str, text: str) -> bool:
+    """Terme présent dans un texte normalisé. Un nombre doit apparaître entier :
+    « 6 » ne compte pas dans « 16 », « 2026 » ou « 6,5 »."""
+    t = _norm(term)
+    if _NUMBER.fullmatch(t):
+        return re.search(rf"(?<![\d.,]){re.escape(t)}(?!\d|[.,]\d)", text) is not None
+    return t in text
+
+
 def keywords_match(answer: str, groups: list[list[str]]) -> bool:
     """Exactitude par règles : chaque groupe doit avoir au moins un synonyme présent."""
     a = _norm(answer)
-    return all(any(_norm(w) in a for w in group) for group in groups)
+    return all(any(term_in(w, a) for w in group) for group in groups)
 
 
 def cites_relevant(sources: list[str], relevant: list[str]) -> bool:
