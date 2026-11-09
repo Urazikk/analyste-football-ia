@@ -140,3 +140,8 @@ def test_law_sections_ignores_numbered_lists():
 def test_split_text_never_exceeds_max():
     long_list = "\n".join(f"• élément {i} sans ponctuation finale" for i in range(80))
     assert all(len(c) <= 300 for c in rag.split_text(long_list, 300))
+
+
+def test_clean_page_removes_diagram_legends():
+    page = "12\nLois du Jeu 2026/27 | Loi 5 | Arbitre\nFREE KICK\nAvantage (1)\nPENALTY KICKCORNER KICK GOAL KICK\nReview – TV Signal\nSignal du coup franc indirect"
+    assert bc.clean_page(page) == "Avantage (1)\nSignal du coup franc indirect"

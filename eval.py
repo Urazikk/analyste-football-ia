@@ -109,6 +109,7 @@ def summarize(level: int, rows: list[dict[str, Any]]) -> dict[str, Any]:
         "Succès tâches": _mean([r["correct"] for r in by("task")]),
         "pass^3": _mean([metrics.pass_hat_k(v) for v in tasks.values()]),
         "Erreurs": sum(1 for r in rows if r.get("error")),
+        "Coût/req ($)": _mean([config.cost_usd(r["tokens_in"], r["tokens_out"]) for r in first]),
         "Tokens/req": _mean([r["tokens_in"] + r["tokens_out"] for r in first]),
         "Latence (s)": _mean([r["latency_s"] for r in first]),
     }
@@ -116,7 +117,8 @@ def summarize(level: int, rows: list[dict[str, Any]]) -> dict[str, Any]:
 
 def to_markdown(summaries: list[dict[str, Any]]) -> str:
     cols = list(summaries[0])
-    fmt = lambda v: "—" if v is None else (f"{v:.2f}" if isinstance(v, float) else str(v))  # noqa: E731
+    fmt = lambda v: "—" if v is None else (f"{v:.2g}" if isinstance(v, float) and 0 < abs(v) < 0.01  # noqa: E731
+                                           else f"{v:.2f}" if isinstance(v, float) else str(v))
     lines = ["| " + " | ".join(cols) + " |", "|" + "---|" * len(cols)]
     lines += ["| " + " | ".join(fmt(s[c]) for c in cols) + " |" for s in summaries]
     return "\n".join(lines)
