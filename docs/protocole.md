@@ -8,7 +8,7 @@ Fixé en semaine 1, identique pour les niveaux 0 à 3. `python eval.py` l'appliq
 |---|---|---|---|
 | `doc` | 20 | `keywords` (groupes de synonymes), `relevant_sources` (ids de document ou de section, ex. `ifab-loi-11` ou `ifab-loi-11#1-position-de-hors-jeu` ; un morceau compte s'il commence par l'un d'eux) | mots clés présents, source pertinente citée, Recall@5 et MRR |
 | `absent` | 5 | `behavior: abstain` | marqueur `[ABSTENTION]` |
-| `task` | 10 | `checks` sur l'état final (`report_published` avec `report` = `<domicile>-vs-<exterieur>`, `must_contain` ; `no_report`) | code (`metrics.check_state`), 3 essais pour pass^3 |
+| `task` | 10 | `checks` sur l'état final (`report_published` avec `report` = `<domicile>-vs-<exterieur>`, `must_contain` : mots ou groupes de synonymes dont un seul suffit ; `no_report`) | code (`metrics.check_state`), 3 essais pour pass^3 |
 | `ambiguous` | 5 | `behavior: clarify` ou `refuse` | marqueur `[PRECISION]` ou `[REFUS]` |
 
 Exemple de ligne :

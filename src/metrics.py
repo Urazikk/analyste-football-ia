@@ -52,7 +52,9 @@ def check_state(checks: list[dict[str, Any]], state_dir: Path) -> bool:
             if not p.exists():
                 return False
             content = _norm(json.loads(p.read_text(encoding="utf-8"))["content"])
-            if not all(_norm(w) in content for w in c.get("must_contain", [])):
+            # chaque élément : un mot, ou un groupe de synonymes dont un seul suffit
+            groups = [[w] if isinstance(w, str) else w for w in c.get("must_contain", [])]
+            if not keywords_match(content, groups):
                 return False
         elif kind == "no_report":
             if (state_dir / "reports").exists() and any((state_dir / "reports").iterdir()):
