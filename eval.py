@@ -172,6 +172,8 @@ def main() -> None:
     p.add_argument("--resume", action="store_true",
                    help="garde les cas déjà réussis de results/raw_level{n}.jsonl et ne relance que les manquants ou en erreur")
     p.add_argument("--table-only", action="store_true", help="refait results/table.md depuis les résultats bruts, sans appel")
+    p.add_argument("--tests", type=Path, default=ROOT / "tests.jsonl", help="jeu de test (ex. tests_robustesse.jsonl)")
+    p.add_argument("--out", type=Path, default=RESULTS_DIR, help="dossier des résultats (ex. results/robustesse)")
     a = p.parse_args()
     if a.model:
         config.LLM_MODEL = a.model
@@ -179,15 +181,16 @@ def main() -> None:
         config.LLM_BASE_URL = a.base_url
 
     random.seed(SEED)
-    tests = [c for c in load_tests() if not a.types or c["type"] in a.types][: a.limit]
-    RESULTS_DIR.mkdir(exist_ok=True)
+    tests = [c for c in load_tests(a.tests) if not a.types or c["type"] in a.types][: a.limit]
+    out = a.out
+    out.mkdir(parents=True, exist_ok=True)
     summaries = []
     for level in a.levels:
         fn = LEVELS.get(level)
         if fn is None:
             print(f"Niveau {level} absent, ignoré.")
             continue
-        raw = RESULTS_DIR / f"raw_level{level}.jsonl"
+        raw = out / f"raw_level{level}.jsonl"
         if a.table_only:
             ids = {c["id"] for c in tests}
             rows = [r for r in _read_rows(raw) if r.get("model") == config.LLM_MODEL and r["id"] in ids]
@@ -216,7 +219,7 @@ def main() -> None:
 
     if summaries:
         table = to_markdown(summaries)
-        (RESULTS_DIR / "table.md").write_text(table + "\n", encoding="utf-8")
+        (out / "table.md").write_text(table + "\n", encoding="utf-8")
         print("\n" + table)
 
 
