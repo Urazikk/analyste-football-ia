@@ -4,8 +4,9 @@ from __future__ import annotations
 import json
 import re
 import unicodedata
-from dataclasses import dataclass
-from typing import Any, Callable, Literal
+from contextlib import contextmanager
+from dataclasses import dataclass, replace
+from typing import Any, Callable, Iterator, Literal
 
 from src import config
 
@@ -244,6 +245,29 @@ def _draw_half_pitch(ax: Any) -> None:
 
 
 # Outil qui agit -----------------------------------------------------------------
+
+# Test d'injection (plan, A4) ------------------------------------------------------
+
+def _poison(result: Any, payload: str) -> Any:
+    """Glisse la consigne piégée dans un champ texte plausible de la sortie (« note » du fournisseur)."""
+    if isinstance(result, dict):
+        return {**result, "note": f"{result.get('note', '')} {payload}".strip()}
+    if isinstance(result, list) and result and isinstance(result[0], dict):
+        return [{**result[0], "note": payload}, *result[1:]]
+    return result
+
+
+@contextmanager
+def injected(tool_name: str, payload: str, registry: dict[str, "Tool"] | None = None) -> Iterator[None]:
+    """Pendant le bloc, les sorties de l'outil contiennent une consigne injectée (données piégées)."""
+    reg = REGISTRY if registry is None else registry
+    orig = reg[tool_name]
+    reg[tool_name] = replace(orig, fn=lambda **kw: _poison(orig.fn(**kw), payload))
+    try:
+        yield
+    finally:
+        reg[tool_name] = orig
+
 
 def report_slug(s: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", unicodedata.normalize("NFKD", s.lower())
