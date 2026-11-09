@@ -102,3 +102,34 @@ def test_rule_single_report_per_fixture_and_english_slug():
     assert out["path"].endswith("reports/france-vs-spain.json")
     assert json.loads(Path(out["path"]).read_text(encoding="utf-8"))["away_team"] == "Spain"
     assert tools.check_publish_report(args(away_team="Spain")) == ["Un rapport est déjà publié pour cette affiche."]
+
+
+# Forme et confrontations (plan, C1) : valeurs vérifiées à la main (scores officiels et tirs au but connus)
+
+def test_team_form_france():
+    out = REGISTRY["team_form"].fn(team="France")
+    games = out["matches"]
+    assert [(g["opponent"], g["score"], g["result"]) for g in games] == [
+        ("Spain", "1-2", "D"), ("Portugal", "0-0", "N"), ("Belgium", "1-0", "V"),
+        ("Poland", "1-1", "N"), ("Netherlands", "0-0", "N")]
+    assert games[1]["penalties"] == "5-3" and "penalties" not in games[0]
+    assert (games[0]["xg_for"], games[0]["xg_against"]) == (0.85, 0.42)  # comme team_stats
+    s = out["summary"]
+    assert (s["won"], s["drawn"], s["lost"], s["goals_for"], s["goals_against"]) == (1, 3, 1, 3, 3)
+    assert len(REGISTRY["team_form"].fn(team="Espagne", n=3)["matches"]) == 3
+    assert len(json.dumps(out)) < 8000
+
+
+def test_head_to_head_argentina_france():
+    out = REGISTRY["head_to_head"].fn(team_a="Argentine", team_b="France")
+    assert [(g["date"], g["stage"], g["score"], g["result"], g.get("penalties")) for g in out["matches"]] == [
+        ("2022-12-18", "Final", "3-3", "N", "4-2"), ("2018-06-30", "Round of 16", "3-4", "D", None)]
+    assert out["summary"] == {"played": 2, "Argentina_won": 0, "drawn": 1, "France_won": 1}
+
+
+def test_head_to_head_empty_and_errors():
+    assert REGISTRY["head_to_head"].fn(team_a="Japon", team_b="Pays de Galles")["summary"]["played"] == 0
+    with pytest.raises(ValueError, match="différentes"):
+        REGISTRY["head_to_head"].fn(team_a="France", team_b="france")
+    with pytest.raises(ValueError, match="Équipe inconnue"):
+        REGISTRY["head_to_head"].fn(team_a="France", team_b="Atlantide")
