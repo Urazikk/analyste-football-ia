@@ -93,3 +93,27 @@ def test_api_other_error_stops_cleanly():
 
     res = agent.run("q", llm=llm, registry=REG)
     assert res.stop_reason == "llm_error" and "panne" in res.error
+
+
+def _events(path) -> list[dict]:
+    return [json.loads(line) for line in open(path, encoding="utf-8")]
+
+
+def test_callback_confirmation_is_traced():
+    llm = scripted([LLMResponse("", [call("act", x=1)]), LLMResponse("ok")])
+    res = agent.run("q", llm=llm, registry=REG, confirm=lambda n, a: True)
+    conf = [e for e in _events(res.trace_path) if e["event"] == "confirmation"]
+    assert conf == [conf[0]] and conf[0]["approved"] is True and conf[0]["by"] == "callback"
+
+
+def test_ui_confirmation_and_refusal_are_traced():
+    llm = scripted([LLMResponse("", [call("act", x=2)])])
+    res = agent.run("q", llm=llm, registry=REG)
+    out = agent.confirm_pending(res.pending_action, registry=REG, trace_path=res.trace_path)
+    assert json.loads(out) == {"ok": True, "result": {"done": 2}}
+    agent.refuse_pending(res.pending_action, trace_path=res.trace_path)
+    events = _events(res.trace_path)
+    assert {e["run_id"] for e in events} == {events[0]["run_id"]}
+    tail = [(e["event"], e.get("approved"), e.get("by")) for e in events[-3:]]
+    assert tail == [("confirmation", True, "user"), ("tool", None, None), ("confirmation", False, "user")]
+    assert '"done": 2' in events[-2]["output"]

@@ -54,7 +54,7 @@ def run(
     messages = [{"role": "system", "content": SYSTEM_PROMPT}, *(history or []),
                 {"role": "user", "content": question}]
     schemas = [t.schema() for t in registry.values()]
-    res = Result(level=2)
+    res = Result(level=2, trace_path=str(tracer.path))
     t0 = time.perf_counter()
 
     for step in range(1, max_steps + 1):
@@ -131,7 +131,7 @@ def _handle_call(call: dict[str, Any], registry: dict[str, Tool], confirm: Confi
             elif tool.effect == "irreversible" and confirm is None:
                 res.pending_action = {"name": name, "arguments": args}
                 out = json.dumps({"ok": False, "error": "En attente de confirmation de l'utilisateur."})
-            elif tool.effect == "irreversible" and not confirm(name, args):
+            elif tool.effect == "irreversible" and not _confirmed(confirm, name, args, tracer):
                 out = json.dumps({"ok": False, "error": "Action refusée par l'utilisateur."}, ensure_ascii=False)
             else:
                 out = execute(tool, args)
@@ -140,6 +140,12 @@ def _handle_call(call: dict[str, Any], registry: dict[str, Tool], confirm: Confi
     tracer.log("tool", name=name, effect=tool.effect if tool else None,
                arguments=call["arguments"], output=out[:2000])
     return out
+
+
+def _confirmed(confirm: Confirm, name: str, args: dict[str, Any], tracer: Tracer) -> bool:
+    approved = bool(confirm(name, args))
+    tracer.log("confirmation", name=name, arguments=args, approved=approved, by="callback")
+    return approved
 
 
 def search_results(tool_calls: list[dict[str, Any]]) -> tuple[list[str], list[str]]:
@@ -156,13 +162,27 @@ def search_results(tool_calls: list[dict[str, Any]]) -> tuple[list[str], list[st
     return first, seen
 
 
-def confirm_pending(pending: dict[str, Any], registry: dict[str, Tool] = REGISTRY) -> str:
-    """Appelé par l'interface après validation explicite de l'utilisateur."""
+def confirm_pending(pending: dict[str, Any], registry: dict[str, Tool] = REGISTRY,
+                    trace_path: str | None = None) -> str:
+    """Appelé par l'interface après validation explicite de l'utilisateur ; journalisé dans la trace du run."""
     tool = registry[pending["name"]]
+    tracer = Tracer.attach(trace_path) if trace_path else None
+    if tracer:
+        tracer.log("confirmation", name=tool.name, arguments=pending["arguments"], approved=True, by="user")
     errors = tool.check(pending["arguments"]) if tool.check else []
-    if errors:
-        return json.dumps({"ok": False, "error": " ".join(errors)}, ensure_ascii=False)
-    return execute(tool, pending["arguments"])
+    out = (json.dumps({"ok": False, "error": "Règle métier : " + " ".join(errors)}, ensure_ascii=False)
+           if errors else execute(tool, pending["arguments"]))
+    if tracer:
+        tracer.log("tool", name=tool.name, effect=tool.effect, arguments=json.dumps(pending["arguments"],
+                   ensure_ascii=False), output=out[:2000])
+    return out
+
+
+def refuse_pending(pending: dict[str, Any], trace_path: str | None = None) -> None:
+    """Refus de l'utilisateur dans l'interface : rien n'est exécuté, le refus est journalisé."""
+    if trace_path:
+        Tracer.attach(trace_path).log("confirmation", name=pending["name"], arguments=pending["arguments"],
+                                      approved=False, by="user")
 
 
 def answer(question: str, confirm: Confirm | None = None) -> Result:

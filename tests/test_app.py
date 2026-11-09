@@ -36,3 +36,38 @@ def test_app_shows_abstention(monkeypatch):
     at.button[0].click().run()
     assert not at.exception
     assert any("Abstention" in i.value for i in at.info)
+
+
+def test_app_validation_publishes_traces_and_shows_plot(monkeypatch, tmp_path):
+    import json
+
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    from src import agent, tools
+    from src.tracing import Tracer
+
+    png = tmp_path / "shots.png"
+    plt.figure(figsize=(1, 1)).savefig(png)
+    tracer = Tracer(level=2, question="q")
+    pending = {"name": "publish_report", "arguments": {"home_team": "France", "away_team": "Spain",
+                                                       "title": "t", "content": "c"}}
+    monkeypatch.setattr(tools, "check_publish_report", lambda a: [])
+    monkeypatch.setitem(tools.REGISTRY, "publish_report", tools.Tool(
+        "publish_report", "", {}, "irreversible", tools.publish_report, tools.check_publish_report))
+    plot_out = json.dumps({"ok": True, "result": {"path": str(png), "shots": 9, "goals": 1}})
+    monkeypatch.setattr(agent, "answer", lambda q: Result(
+        level=2, answer="Rapport prêt.", pending_action=pending, stop_reason="awaiting_confirmation",
+        tool_calls=[{"name": "plot_shots", "arguments": "{}", "output": plot_out}], trace_path=str(tracer.path)))
+    at = AppTest.from_file("../src/app.py", default_timeout=30).run()
+    at.sidebar.radio[0].set_value(2).run()
+    at.text_area[0].input("Publie le rapport France - Espagne").run()
+    at.button[0].click().run()
+    assert not at.exception and sum(type(e).__name__ == "Image" for e in at.main) == 1
+    at.button[1].click().run()  # Valider
+    assert not at.exception
+    assert any("Rapport publié" in s.value for s in at.success)
+    assert tools.report_path("France", "Spain").exists()
+    events = [json.loads(line)["event"] for line in tracer.path.read_text(encoding="utf-8").splitlines()]
+    assert events[-2:] == ["confirmation", "tool"]
