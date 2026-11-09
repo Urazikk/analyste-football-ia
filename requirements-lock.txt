@@ -16,6 +16,7 @@ cuda-toolkit==13.2.2
 cycler==0.12.1
 filelock==4.2.9
 fonttools==4.68.0
+fpdf2==2.9.0
 fsspec==2026.9.0
 h11==0.16.0
 hf-xet==1.8.0

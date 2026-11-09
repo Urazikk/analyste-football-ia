@@ -71,3 +71,30 @@ def test_app_validation_publishes_traces_and_shows_plot(monkeypatch, tmp_path):
     assert tools.report_path("France", "Spain").exists()
     events = [json.loads(line)["event"] for line in tracer.path.read_text(encoding="utf-8").splitlines()]
     assert events[-2:] == ["confirmation", "tool"]
+
+
+def test_compare_tab_runs_three_levels(monkeypatch):
+    from src import agent, llm
+
+    monkeypatch.setattr(rag, "get_index", lambda: SimpleNamespace(chunks=[]))
+    for mod, lv in ((llm, 0), (rag, 1), (agent, 2)):
+        monkeypatch.setattr(mod, "answer", lambda q, lv=lv: Result(level=lv, answer=f"réponse {lv}", tokens_in=10 * (lv + 1)))
+    at = AppTest.from_file("../src/app.py", default_timeout=30).run()
+    at.text_area(key="cmp_q").input("Combien de joueurs ?").run()
+    at.button(key="cmp_go").click().run()
+    assert not at.exception
+    texts = [m.value for m in at.markdown]
+    assert all(f"réponse {lv}" in texts for lv in (0, 1, 2))
+
+
+def test_reports_tab_offers_pdf(monkeypatch):
+    import json
+
+    p = config.state_dir() / "reports" / "france-vs-spain.json"
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps({"home_team": "France", "away_team": "Spain", "title": "Avant-match",
+                             "content": "France : 9 tirs."}), encoding="utf-8")
+    at = AppTest.from_file("../src/app.py", default_timeout=30).run()
+    assert not at.exception
+    assert any("Avant-match" in e.label for e in at.expander)
+    assert p.with_suffix(".pdf").exists()

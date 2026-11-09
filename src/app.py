@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import streamlit as st  # noqa: E402
 
-from src import agent, config, llm, rag  # noqa: E402
+from src import agent, config, export, llm, rag  # noqa: E402
 from src.result import Result  # noqa: E402
 
 LEVELS = {0: "0 · LLM seul", 1: "1 · RAG", 2: "2 · Agent", 3: "3 · Extension"}
@@ -81,55 +81,105 @@ def last_trace() -> Path | None:
     return files[-1] if files else None
 
 
+def run_level(level: int, question: str) -> Result:
+    """Réponse d'un niveau ; l'agent n'exécute jamais d'action irréversible ici sans validation."""
+    if level == 0:
+        return llm.answer(question)
+    if level == 1:
+        return rag.answer(question)
+    if level == 2:
+        return agent.answer(question)
+    raise NotImplementedError("Niveau 3 : semaine 4")
+
+
+def tab_compare() -> None:
+    """Même question aux niveaux 0 à 2, côte à côte : réponse, sources, coût."""
+    q = st.text_area("Question à comparer", key="cmp_q")
+    if st.button("Comparer les niveaux 0, 1 et 2", key="cmp_go") and q:
+        with st.spinner("Trois réponses en cours..."):
+            st.session_state["cmp"] = {lv: run_level(lv, q) for lv in (0, 1, 2)}
+    results = st.session_state.get("cmp")
+    if not results:
+        return
+    for col, (lv, r) in zip(st.columns(len(results)), results.items()):
+        with col:
+            st.subheader(LEVELS[lv])
+            show_status(r)
+            st.markdown(r.answer or "_(pas de réponse)_")
+            st.caption(f"Sources : {', '.join(r.sources) or 'aucune'}")
+            st.caption(f"{r.tokens} tokens · {config.cost_usd(r.tokens_in, r.tokens_out):.5f} $ · "
+                       f"{r.latency_s:.1f} s · {r.steps} étape(s)")
+            if r.pending_action:
+                st.warning("Action demandée, non exécutée ici : utiliser l'onglet Question pour la valider.")
+
+
+def tab_reports() -> None:
+    """Rapports publiés : contenu et export PDF."""
+    reports = export.published_reports()
+    if not reports:
+        st.info("Aucun rapport publié pour l'instant.")
+        return
+    for path in reports:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        with st.expander(f"{data.get('title') or path.stem} ({path.stem})"):
+            st.markdown(data.get("content", ""))
+            pdf = export.report_to_pdf(path)
+            st.download_button("Télécharger le PDF", pdf.read_bytes(), file_name=pdf.name,
+                               mime="application/pdf", key=f"pdf_{path.stem}")
+
+
+def tab_question() -> None:
+    question = st.text_area("Question")
+
+    if st.button("Envoyer", type="primary") and question:
+        try:
+            with st.spinner("Réponse en cours..."):
+                res = run_level(level, question)
+            st.session_state["res"] = res
+            st.session_state.pop("action", None)
+        except NotImplementedError as e:
+            st.warning(str(e))
+
+    res = st.session_state.get("res")
+    if res:
+        show_status(res)
+        st.markdown(res.answer)
+        show_plots(res)
+        show_sources(res)
+        show_costs(res)
+        if res.tool_calls:
+            with st.expander(f"Appels d'outils ({len(res.tool_calls)})"):
+                st.json(res.tool_calls)
+        trace = Path(res.trace_path) if res.trace_path else last_trace()
+        if trace:
+            st.caption(f"Trace : traces/{trace.name}")
+        if res.pending_action:
+            st.warning(f"Action irréversible demandée : {res.pending_action['name']}")
+            st.json(res.pending_action["arguments"])
+            ok, ko = st.columns(2)
+            if ok.button("Valider"):
+                out = json.loads(agent.confirm_pending(res.pending_action, trace_path=res.trace_path))
+                st.session_state["action"] = (("success", f"Rapport publié : {out['result']['path']}") if out["ok"]
+                                              else ("error", f"Action bloquée : {out['error']}"))
+                res.pending_action = None
+            elif ko.button("Refuser"):
+                agent.refuse_pending(res.pending_action, trace_path=res.trace_path)
+                st.session_state["action"] = ("info", "Action annulée, rien n'a été publié.")
+                res.pending_action = None
+        if "action" in st.session_state:
+            kind, text = st.session_state["action"]
+            getattr(st, kind)(text)
+
+
 st.set_page_config(page_title="Analyste de football", layout="wide")
 st.title("Analyste de football")
 
-level = st.sidebar.radio("Niveau", list(LEVELS), format_func=LEVELS.get)
+level = st.sidebar.radio("Niveau (onglet Question)", list(LEVELS), format_func=LEVELS.get)
 st.sidebar.caption(f"Modèle : {config.LLM_MODEL}")
-question = st.text_area("Question")
-
-if st.button("Envoyer", type="primary") and question:
-    try:
-        with st.spinner("Réponse en cours..."):
-            if level == 0:
-                res = llm.answer(question)
-            elif level == 1:
-                res = rag.answer(question)
-            elif level == 2:
-                res = agent.answer(question)
-            else:
-                raise NotImplementedError("Niveau 3 : semaine 4")
-        st.session_state["res"] = res
-        st.session_state.pop("action", None)
-    except NotImplementedError as e:
-        st.warning(str(e))
-
-res = st.session_state.get("res")
-if res:
-    show_status(res)
-    st.markdown(res.answer)
-    show_plots(res)
-    show_sources(res)
-    show_costs(res)
-    if res.tool_calls:
-        with st.expander(f"Appels d'outils ({len(res.tool_calls)})"):
-            st.json(res.tool_calls)
-    trace = Path(res.trace_path) if res.trace_path else last_trace()
-    if trace:
-        st.caption(f"Trace : traces/{trace.name}")
-    if res.pending_action:
-        st.warning(f"Action irréversible demandée : {res.pending_action['name']}")
-        st.json(res.pending_action["arguments"])
-        ok, ko = st.columns(2)
-        if ok.button("Valider"):
-            out = json.loads(agent.confirm_pending(res.pending_action, trace_path=res.trace_path))
-            st.session_state["action"] = (("success", f"Rapport publié : {out['result']['path']}") if out["ok"]
-                                          else ("error", f"Action bloquée : {out['error']}"))
-            res.pending_action = None
-        elif ko.button("Refuser"):
-            agent.refuse_pending(res.pending_action, trace_path=res.trace_path)
-            st.session_state["action"] = ("info", "Action annulée, rien n'a été publié.")
-            res.pending_action = None
-    if "action" in st.session_state:
-        kind, text = st.session_state["action"]
-        getattr(st, kind)(text)
+tab_q, tab_c, tab_r = st.tabs(["Question", "Comparer les niveaux", "Rapports publiés"])
+with tab_q:
+    tab_question()
+with tab_c:
+    tab_compare()
+with tab_r:
+    tab_reports()
