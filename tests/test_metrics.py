@@ -23,6 +23,9 @@ def test_numbers_match_whole():
     assert not metrics.keywords_match("6,5 tirs", [["6"]])
     assert metrics.keywords_match("à 16,5 m des poteaux.", [["16,5"]])
     assert metrics.keywords_match("score 3-3.", [["3-3"]])
+    assert not metrics.keywords_match("à 11 m du but", [["1 m"]])
+    assert metrics.keywords_match("à 1 m du mur", [["1 m"]])
+    assert metrics.keywords_match("Onze joueurs", [["onze"]])
 
 
 def test_bootstrap_ci():

@@ -32,7 +32,9 @@ def numbers(case_id: str) -> list[list[str]]:
 
 def test_counts_by_type():
     types = [c["type"] for c in CASES.values()]
-    assert (types.count("doc"), types.count("absent"), types.count("task"), types.count("ambiguous")) == (20, 5, 10, 5)
+    # minimums du sujet (20, 5, 10, 5) ; le plan ambitieux vise 80 cas (docs/plan.md, axe A)
+    counts = (types.count("doc"), types.count("absent"), types.count("task"), types.count("ambiguous"))
+    assert all(n >= m for n, m in zip(counts, (20, 5, 10, 5))), counts
 
 
 def test_task_01_last_match_shots_france_spain():

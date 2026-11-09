@@ -35,12 +35,12 @@ def mrr(retrieved: list[str], relevant: list[str]) -> float:
 
 
 def term_in(term: str, text: str) -> bool:
-    """Terme présent dans un texte normalisé. Un nombre doit apparaître entier :
-    « 6 » ne compte pas dans « 16 », « 2026 » ou « 6,5 »."""
+    """Terme présent dans un texte normalisé. Un nombre en début ou en fin de terme doit apparaître entier :
+    « 6 » ne compte pas dans « 16 », « 2026 » ou « 6,5 », ni « 1 m » dans « 11 m »."""
     t = _norm(term)
-    if _NUMBER.fullmatch(t):
-        return re.search(rf"(?<![\d.,]){re.escape(t)}(?!\d|[.,]\d)", text) is not None
-    return t in text
+    before = r"(?<![\d.,])" if t[:1].isdigit() else ""
+    after = r"(?!\d|[.,]\d)" if t[-1:].isdigit() else ""
+    return re.search(before + re.escape(t) + after, text) is not None
 
 
 def keywords_match(answer: str, groups: list[list[str]]) -> bool:
