@@ -94,3 +94,26 @@ def unsupported_numbers(report: str, tool_outputs: list[str]) -> list[float]:
     """
     seen = {round(x, d) for out in tool_outputs for x in numbers_in(out) for d in (0, 1, 2)}
     return sorted({x for x in numbers_in(report) if x not in seen})
+
+
+def bootstrap_ci(xs: list[float], b: int = 2000, seed: int = 42, alpha: float = 0.05) -> tuple[float, float] | None:
+    """Intervalle de confiance de la moyenne par bootstrap percentile (graine fixée) ; None si moins de 2 valeurs."""
+    import random
+
+    xs = [float(x) for x in xs if x is not None]
+    if len(xs) < 2:
+        return None
+    rng = random.Random(seed)
+    means = sorted(sum(rng.choices(xs, k=len(xs))) / len(xs) for _ in range(b))
+    return means[int(b * alpha / 2)], means[int(b * (1 - alpha / 2)) - 1]
+
+
+def paired_bootstrap(a: list[float], b_: list[float], b: int = 2000, seed: int = 42) -> dict[str, float]:
+    """Différence moyenne b_ - a sur les mêmes cas : intervalle à 95 % et part des tirages où elle est <= 0."""
+    import random
+
+    d = [float(y) - float(x) for x, y in zip(a, b_)]
+    rng = random.Random(seed)
+    means = sorted(sum(rng.choices(d, k=len(d))) / len(d) for _ in range(b))
+    return {"diff": sum(d) / len(d), "lo": means[int(b * 0.025)], "hi": means[int(b * 0.975) - 1],
+            "p_le_0": sum(m <= 0 for m in means) / b}

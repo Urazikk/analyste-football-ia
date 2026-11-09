@@ -37,3 +37,9 @@ Exemple de ligne :
 | Succès tâches | cas `task`, premier essai |
 | pass^3 | cas `task`, réussite des 3 essais |
 | Tokens/req, latence | moyenne sur le premier essai de chaque cas |
+
+## Incertitude et comparaison des niveaux
+
+- Chaque métrique de qualité du tableau est donnée avec son intervalle de confiance à 95 % (bootstrap percentile, 2000 tirages, graine `SEED`).
+- `python scripts/compare_levels.py` compare les niveaux deux à deux sur les mêmes cas (bootstrap apparié) : différence, intervalle, et part des tirages où le niveau supérieur ne fait pas mieux. Un niveau « aide » si l'intervalle de la différence est au-dessus de 0.
+

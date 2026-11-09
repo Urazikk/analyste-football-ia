@@ -40,6 +40,7 @@ Les articles Wikipédia (CC BY-SA 4.0) sont versionnés dans `data/corpus/wiki/`
 python eval.py              # reproduit le tableau de résultats (results/table.md)
 streamlit run src/app.py    # interface
 pytest                      # tests unitaires (sans API)
+python scripts/compare_levels.py   # comparaison appariée des niveaux (sans appel)
 ```
 
 ## Organisation

@@ -23,3 +23,16 @@ def test_numbers_match_whole():
     assert not metrics.keywords_match("6,5 tirs", [["6"]])
     assert metrics.keywords_match("à 16,5 m des poteaux.", [["16,5"]])
     assert metrics.keywords_match("score 3-3.", [["3-3"]])
+
+
+def test_bootstrap_ci():
+    lo, hi = metrics.bootstrap_ci([1, 1, 0, 1, 0, 1, 1, 1], seed=1)
+    assert 0 <= lo <= 0.75 <= hi <= 1
+    assert metrics.bootstrap_ci([1]) is None
+    assert metrics.bootstrap_ci([1, 1, 1]) == (1.0, 1.0)
+
+
+def test_paired_bootstrap():
+    r = metrics.paired_bootstrap([0] * 10, [1] * 10)
+    assert r["diff"] == 1 and r["lo"] == r["hi"] == 1 and r["p_le_0"] == 0
+    assert metrics.paired_bootstrap([1, 0], [1, 0])["p_le_0"] == 1
