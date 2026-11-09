@@ -4,6 +4,7 @@ Lancement : streamlit run src/app.py
 """
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -64,6 +65,17 @@ def show_costs(res: Result) -> None:
     c5.metric("Étapes", res.steps)
 
 
+def show_plots(res: Result) -> None:
+    """Cartes des tirs produites par plot_shots pendant l'exécution."""
+    for call in res.tool_calls:
+        if call["name"] != "plot_shots":
+            continue
+        out = json.loads(call.get("output") or "{}")
+        path = Path(out.get("result", {}).get("path", "")) if out.get("ok") else None
+        if path and path.is_file():
+            st.image(str(path), caption=path.name)
+
+
 def last_trace() -> Path | None:
     files = sorted(config.TRACES_DIR.glob("*.jsonl"), key=lambda p: p.stat().st_mtime)
     return files[-1] if files else None
@@ -88,6 +100,7 @@ if st.button("Envoyer", type="primary") and question:
             else:
                 raise NotImplementedError("Niveau 3 : semaine 4")
         st.session_state["res"] = res
+        st.session_state.pop("action", None)
     except NotImplementedError as e:
         st.warning(str(e))
 
@@ -95,12 +108,13 @@ res = st.session_state.get("res")
 if res:
     show_status(res)
     st.markdown(res.answer)
+    show_plots(res)
     show_sources(res)
     show_costs(res)
     if res.tool_calls:
         with st.expander(f"Appels d'outils ({len(res.tool_calls)})"):
             st.json(res.tool_calls)
-    trace = last_trace()
+    trace = Path(res.trace_path) if res.trace_path else last_trace()
     if trace:
         st.caption(f"Trace : traces/{trace.name}")
     if res.pending_action:
@@ -108,8 +122,14 @@ if res:
         st.json(res.pending_action["arguments"])
         ok, ko = st.columns(2)
         if ok.button("Valider"):
-            st.success(agent.confirm_pending(res.pending_action))
+            out = json.loads(agent.confirm_pending(res.pending_action, trace_path=res.trace_path))
+            st.session_state["action"] = (("success", f"Rapport publié : {out['result']['path']}") if out["ok"]
+                                          else ("error", f"Action bloquée : {out['error']}"))
             res.pending_action = None
-        if ko.button("Refuser"):
-            st.info("Action annulée.")
+        elif ko.button("Refuser"):
+            agent.refuse_pending(res.pending_action, trace_path=res.trace_path)
+            st.session_state["action"] = ("info", "Action annulée, rien n'a été publié.")
             res.pending_action = None
+    if "action" in st.session_state:
+        kind, text = st.session_state["action"]
+        getattr(st, kind)(text)

@@ -22,6 +22,7 @@ class Result:
     steps: int = 0
     stop_reason: str = "final"
     error: str | None = None
+    trace_path: str | None = None                       # trace JSONL de l'exécution
 
     @property
     def tokens(self) -> int:

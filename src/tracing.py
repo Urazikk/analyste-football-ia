@@ -19,6 +19,13 @@ class Tracer:
         self.t0 = time.perf_counter()
         self.log("start", level=level, question=question)
 
+    @classmethod
+    def attach(cls, path: Path | str) -> "Tracer":
+        """Reprend une trace existante (ex. validation d'une action après la fin de la boucle)."""
+        tracer = cls.__new__(cls)
+        tracer.path, tracer.run_id, tracer.t0 = Path(path), Path(path).stem, time.perf_counter()
+        return tracer
+
     def log(self, event: str, **data: Any) -> None:
         line = {"run_id": self.run_id, "t": round(time.perf_counter() - self.t0, 3), "event": event, **data}
         with self.path.open("a", encoding="utf-8") as f:
