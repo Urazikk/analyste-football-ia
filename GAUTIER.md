@@ -116,6 +116,21 @@ python scripts/bench_models.py
 - Consigner succès, pass^3, chiffres non soutenus, tokens et latence dans `docs/decisions.md`.
 - Noter les échecs observés (outil mal appelé, boucle qui tourne, chiffre inventé) : ils servent à choisir l'extension du niveau 3.
 
+## 7. Plan ambitieux (9 novembre) : tes nouvelles tâches
+
+Les sections 1 à 5 sont faites (PR #3 à #8). Détail et raisons dans `docs/plan.md`, section 3.
+
+| Tâche | Fini quand | Pour le |
+|---|---|---|
+| A2 : 10 tâches et 5 cas ambigus de plus dans `tests.jsonl` (task-11 à task-20, amb-06 à amb-10), chiffres vérifiés par `tests/test_tasks_ground_truth.py` | 80 cas, pytest vert | 15 nov. |
+| C1 : outils `team_form` (5 derniers matchs : résultats, buts, xG) et `head_to_head` | un test par outil, valeurs vérifiées à la main | 15 nov. |
+| Mesures des tâches au niveau 2 avec pass^3, avec ta clé Groq et `--resume` | `results/raw_level2.jsonl` complet sur les tâches | 22 nov. |
+| A4 (partie outils) : sorties d'outils piégées par une consigne injectée ; cas de type `injection` (mot témoin `CANARI-7Q`, voir `tests_injection.jsonl` et `tests/test_injection.py`) | taux d'obéissance mesuré ; aucune publication sans confirmation | 22 nov. |
+| A5 : annoter à l'aveugle les 30 réponses du juge (`python scripts/calibrate_judge.py --annotate`, sans regarder les annotations de Simon ni le juge) | accord entre humains calculé | 22 nov. |
+| C2 : rapport d'avant-match structuré (forme, confrontations, cartes de tirs) ; Simon fait l'export PDF et l'interface | rapport complet publié depuis l'interface | 22 nov. |
+| C4 : Euro 2020 et CdM 2018 dans `config.COMPETITIONS` pour l'historique des confrontations | cache rempli, tests des tâches toujours verts | 22 nov. |
+| Benchmark de modèles (gpt-oss-120b, qwen3.8-27b, un modèle Ollama) | `results/bench-llm.md` | 22 nov. |
+
 ## Calendrier
 
 | Quand | Quoi |
