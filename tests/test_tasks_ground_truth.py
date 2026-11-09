@@ -32,7 +32,17 @@ def numbers(case_id: str) -> list[list[str]]:
 
 def test_counts_by_type():
     types = [c["type"] for c in CASES.values()]
-    assert (types.count("doc"), types.count("absent"), types.count("task"), types.count("ambiguous")) == (20, 5, 10, 5)
+    # minimums du sujet (20, 5, 10, 5) ; le plan ambitieux vise 80 cas (docs/plan.md, axe A)
+    counts = (types.count("doc"), types.count("absent"), types.count("task"), types.count("ambiguous"))
+    assert all(n >= m for n, m in zip(counts, (20, 5, 10, 5))), counts
+
+
+def test_task_01_last_match_shots_france_spain():
+    france = tools.list_matches("France", limit=1)[0]
+    spain = tools.list_matches("Espagne", limit=1)[0]
+    assert (france["stage"], spain["stage"]) == ("Semi-finals", "Final")
+    shots = (tools.team_stats(france["match_id"], "France")["shots"], tools.team_stats(spain["match_id"], "Espagne")["shots"])
+    assert shots == (9, 16) and [["9"], ["16"]] == numbers("task-01")[1:]
 
 
 def test_task_02_argentina_france_final():

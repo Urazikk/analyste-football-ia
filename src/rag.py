@@ -105,9 +105,10 @@ def chunk_document(raw: str, max_chars: int = MAX_CHARS) -> list[Chunk]:
 
 
 def load_corpus(corpus_dir: Path = CORPUS_DIR, max_chars: int = MAX_CHARS) -> list[Chunk]:
-    """Lit tous les documents de data/corpus/ (wiki/, ifab/) et les découpe."""
+    """Lit tous les documents de data/corpus/ (wiki/, ifab/), plus config.EXTRA_CORPUS_DIRS, et les découpe."""
+    paths = sorted(corpus_dir.glob("*/*.md")) + [p for d in config.EXTRA_CORPUS_DIRS for p in sorted(d.glob("*.md"))]
     chunks: list[Chunk] = []
-    for path in sorted(corpus_dir.glob("*/*.md")):
+    for path in paths:
         chunks += chunk_document(path.read_text(encoding="utf-8"), max_chars)
     return chunks
 
