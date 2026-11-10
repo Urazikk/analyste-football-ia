@@ -211,6 +211,21 @@ def team_form(team: str, n: int = 5) -> dict[str, Any]:
             "note": "résultat sur le score officiel (tirs au but à part) ; V victoire, N nul, D défaite"}
 
 
+def simulate_match(home_team: str, away_team: str, neutral: bool = True) -> dict[str, Any]:
+    """Pronostic d'une affiche : Elo, buts de Poisson, 10 000 matchs simulés (src/predict.py)."""
+    from src import predict
+
+    home, away = predict.resolve_intl(home_team), predict.resolve_intl(away_team)
+    if home == away:
+        raise ValueError("Les deux équipes doivent être différentes.")
+    r = predict.simulate(home, away, neutral)
+    return {"home_team": home, "away_team": away, "neutral": neutral,
+            "probabilities": {"home_win": round(r["home_win"], 3), "draw": round(r["draw"], 3),
+                              "away_win": round(r["away_win"], 3)},
+            "likely_scores": r["likely_scores"][:3], "expected_goals": r["expected_goals"],
+            "elo": {"home": r["elo_home"], "away": r["elo_away"]}, "note": r["note"]}
+
+
 def head_to_head(team_a: str, team_b: str) -> dict[str, Any]:
     """Confrontations directes entre deux équipes dans les données, de la plus récente à la plus ancienne."""
     from src import data
@@ -367,6 +382,13 @@ REGISTRY: dict[str, Tool] = {t.name: t for t in [
          {"type": "object", "properties": {"team_a": {"type": "string"}, "team_b": {"type": "string"}},
           "required": ["team_a", "team_b"], "additionalProperties": False},
          "compute", head_to_head),
+    Tool("simulate_match", "Pronostic d'une affiche future : probabilités victoire/nul/défaite, 3 scores les plus "
+         "probables, buts attendus, Elo (10 000 matchs simulés). neutral=true sur terrain neutre (tournoi). "
+         "Toute sélection nationale, nom en français ou en anglais.",
+         {"type": "object", "properties": {"home_team": {"type": "string"}, "away_team": {"type": "string"},
+                                           "neutral": {"type": "boolean"}},
+          "required": ["home_team", "away_team"], "additionalProperties": False},
+         "compute", simulate_match),
     Tool("plot_shots", "Carte des tirs d'une équipe sur un match (image PNG). Retourne le chemin, tirs et buts.",
          {"type": "object", "properties": {"match_id": {"type": "integer"}, "team": {"type": "string"}},
           "required": ["match_id", "team"], "additionalProperties": False},

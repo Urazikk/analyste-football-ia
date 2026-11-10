@@ -150,6 +150,45 @@ def summarize_simulation(scores: np.ndarray, top: int = 5) -> dict[str, Any]:
                               for i in order]}
 
 
+# Noms des sélections -------------------------------------------------------------------------
+
+# Noms FIFA ou français vers le nom du jeu international. Les 59 sélections StatsBomb ont le même nom
+# anglais des deux côtés (vérifié par tests/test_predict_tool.py) ; ces alias couvrent les autres.
+INTL_ALIASES: dict[str, str] = {
+    "Korea Republic": "South Korea", "Corée": "South Korea", "Czechia": "Czech Republic",
+    "Côte d'Ivoire": "Ivory Coast", "Cote d'Ivoire": "Ivory Coast", "IR Iran": "Iran", "China PR": "China",
+    "Türkiye": "Turkey", "Ireland": "Republic of Ireland", "Irlande": "Republic of Ireland",
+    "Irlande du Nord": "Northern Ireland", "Chine": "China", "Algérie": "Algeria", "Grèce": "Greece",
+    "Norvège": "Norway", "Nouvelle-Zélande": "New Zealand", "Cap-Vert": "Cape Verde", "RD Congo": "DR Congo",
+    "Bosnie-Herzégovine": "Bosnia and Herzegovina", "Afrique du Sud": "South Africa", "Égypte": "Egypt",
+    "Irak": "Iraq", "Jordanie": "Jordan", "Ouzbékistan": "Uzbekistan", "Émirats arabes unis": "United Arab Emirates",
+    "Mali": "Mali", "Burkina Faso": "Burkina Faso", "Haïti": "Haiti", "Curaçao": "Curaçao", "Israël": "Israel",
+}
+
+
+def resolve_intl(name: str) -> str:
+    """Nom français, StatsBomb ou FIFA vers le nom du jeu international. ValueError sinon, avec suggestion."""
+    import difflib
+
+    from src import data
+
+    known = set(_model()[0].ratings)
+    try:
+        sb = data.resolve_team(name)  # « Espagne » -> Spain (sélections StatsBomb)
+        if sb in known:
+            return sb
+    except ValueError:
+        pass
+    lookup = {data._norm(t): t for t in known}
+    lookup.update({data._norm(a): t for a, t in INTL_ALIASES.items() if t in known})
+    key = data._norm(name)
+    if key in lookup:
+        return lookup[key]
+    close = difflib.get_close_matches(key, lookup, n=3, cutoff=0.6)
+    hint = f" Vouliez-vous dire : {', '.join(dict.fromkeys(lookup[c] for c in close))} ?" if close else ""
+    raise ValueError(f"Sélection inconnue dans les résultats internationaux : « {name} ».{hint}")
+
+
 # Point d'entrée pour l'outil de l'agent ----------------------------------------------------
 
 @lru_cache(maxsize=1)
