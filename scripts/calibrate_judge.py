@@ -2,6 +2,8 @@
 
     python scripts/calibrate_judge.py --prepare   # crée docs/annotations_fidelite.jsonl à annoter
     python scripts/calibrate_judge.py --annotate  # annotation guidée dans le terminal (o/n)
+    python scripts/calibrate_judge.py --annotate --annotateur gautier   # second annotateur, à l'aveugle
+    python scripts/calibrate_judge.py --accord    # accord entre les deux humains, sans LLM
     python scripts/calibrate_judge.py             # compare juge et annotations
 
 Annoter à la main le champ "humain" (true : chaque affirmation est soutenue par les extraits cités,
@@ -39,13 +41,26 @@ def prepare(source: Path, n: int = 20) -> None:
     print(f"{len(out)} réponses à annoter dans {ANNOT}")
 
 
-def annotate() -> None:
-    """Affiche chaque réponse et ses extraits, enregistre o/n après chaque cas (reprise possible)."""
+def annotate(annotator: str = "simon") -> None:
+    """Affiche chaque réponse et ses extraits, enregistre o/n après chaque cas (reprise possible).
+
+    Annotateur autre que Simon : champ « humain_<nom> », ordre mélangé (graine fixe) et identifiants
+    masqués, pour annoter à l'aveugle sans savoir quelles réponses ont été modifiées.
+    """
+    import random
+
+    field, note = ("humain", "note") if annotator == "simon" else (f"humain_{annotator}", f"note_{annotator}")
     rows = [json.loads(l) for l in ANNOT.read_text(encoding="utf-8").splitlines() if l.strip()]
-    for i, r in enumerate(rows):
-        if isinstance(r["humain"], bool):
+    order = list(range(len(rows)))
+    blind = annotator != "simon"
+    if blind:
+        random.Random(42).shuffle(order)
+    for k, i in enumerate(order):
+        r = rows[i]
+        if isinstance(r.get(field), bool):
             continue
-        print(f"\n===== {r['id']} ({i + 1}/{len(rows)}) =====\nQuestion : {r['question']}\n\nRéponse :\n{r['answer']}\n")
+        label = f"cas {k + 1}/{len(rows)}" if blind else f"{r['id']} ({k + 1}/{len(rows)})"
+        print(f"\n===== {label} =====\nQuestion : {r['question']}\n\nRéponse :\n{r['answer']}\n")
         for cid, text in judge.passages_for(r["sources"]).items():
             print(f"--- extrait [{cid}]\n{text}\n")
         ans = ""
@@ -53,10 +68,28 @@ def annotate() -> None:
             ans = input("Chaque affirmation est-elle soutenue par les extraits ? [o/n, q pour quitter] ").strip().lower()
         if ans == "q":
             break
-        r["humain"] = ans == "o"
-        r["note"] = input("Note (facultatif) : ").strip()
+        r[field] = ans == "o"
+        r[note] = input("Note (facultatif) : ").strip()
         ANNOT.write_text("".join(json.dumps(o, ensure_ascii=False) + "\n" for o in rows), encoding="utf-8")
-    print(f"{sum(isinstance(r['humain'], bool) for r in rows)}/{len(rows)} annotées.")
+    print(f"{sum(isinstance(r.get(field), bool) for r in rows)}/{len(rows)} annotées ({annotator}).")
+
+
+def agreement(other: str = "gautier") -> str:
+    """Accord entre les deux annotateurs humains (sans LLM) : à comparer à l'accord juge et humain."""
+    rows = [json.loads(l) for l in ANNOT.read_text(encoding="utf-8").splitlines() if l.strip()]
+    pairs = [(r["humain"], r[f"humain_{other}"]) for r in rows
+             if isinstance(r.get("humain"), bool) and isinstance(r.get(f"humain_{other}"), bool)]
+    if not pairs:
+        raise SystemExit(f"Aucune réponse annotée par les deux : lancer --annotate --annotateur {other}.")
+    k = kappa(pairs)
+    diff = [r["id"] for r in rows if isinstance(r.get(f"humain_{other}"), bool) and r[f"humain_{other}"] != r.get("humain")]
+    text = (f"# Accord entre annotateurs (Simon et {other})\n\n{len(pairs)} réponses annotées par les deux. "
+            f"Accord : {sum(a == b for a, b in pairs) / len(pairs):.2f}. Kappa de Cohen : "
+            f"{'indéfini' if k is None else f'{k:.2f}'}. Désaccords : {', '.join(diff) or 'aucun'}.\n")
+    RESULTS_DIR.mkdir(exist_ok=True)
+    (RESULTS_DIR / "accord_annotateurs.md").write_text(text, encoding="utf-8")
+    print(text)
+    return text
 
 
 def kappa(pairs: list[tuple[bool, bool]]) -> float | None:
@@ -99,11 +132,15 @@ if __name__ == "__main__":
     p = argparse.ArgumentParser()
     p.add_argument("--prepare", action="store_true")
     p.add_argument("--annotate", action="store_true")
+    p.add_argument("--annotateur", default="simon", help="autre que simon : annotation à l'aveugle dans un champ séparé")
+    p.add_argument("--accord", action="store_true", help="accord entre Simon et --annotateur, sans LLM")
     p.add_argument("--source", type=Path, default=SOURCE, help="résultats bruts du niveau 1 à annoter")
     a = p.parse_args()
     if a.prepare:
         prepare(a.source)
     elif a.annotate:
-        annotate()
+        annotate(a.annotateur.lower())
+    elif a.accord:
+        agreement("gautier" if a.annotateur == "simon" else a.annotateur.lower())
     else:
         calibrate()
