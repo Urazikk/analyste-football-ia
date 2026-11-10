@@ -10,6 +10,7 @@ Format du fichier `STATE_DIR/reports/<domicile>-vs-<exterieur>.json` :
     sections.form.{home,away}                      team_form : 5 derniers matchs et bilan
     sections.head_to_head                          head_to_head : confrontations directes
     sections.last_match.{home,away}                match, team_stats, shot_map (chemin du PNG)
+    sections.prediction                            simulate_match sur terrain neutre (None sans le cache intl)
 """
 from __future__ import annotations
 
@@ -27,13 +28,35 @@ def _last_match(team: str) -> dict[str, Any] | None:
             "shot_map": tools.plot_shots(m["match_id"], team)["path"]}
 
 
+def _prediction(home: str, away: str) -> dict[str, Any] | None:
+    """Pronostic sur terrain neutre (affiche de tournoi) ; None si les résultats internationaux ne sont
+    pas en cache : la publication ne télécharge rien et n'échoue pas pour autant."""
+    from src import predict
+
+    if not predict.cache_path().exists():
+        return None
+    return tools.simulate_match(home, away, neutral=True)
+
+
 def build_sections(home: str, away: str) -> dict[str, Any]:
     """Sections chiffrées d'une affiche (noms StatsBomb). Lève ValueError si une équipe est inconnue."""
     return {
         "form": {"home": tools.team_form(home), "away": tools.team_form(away)},
         "head_to_head": tools.head_to_head(home, away),
         "last_match": {"home": _last_match(home), "away": _last_match(away)},
+        "prediction": _prediction(home, away),
     }
+
+
+def _prediction_lines(p: dict[str, Any]) -> list[str]:
+    pr, home, away = p["probabilities"], p["home_team"], p["away_team"]
+    scores = ", ".join(f"{s['score']} ({100 * s['p']:.0f} %)" for s in p["likely_scores"])
+    return ["## Pronostic", "",
+            f"Victoire {home} {100 * pr['home_win']:.0f} %, nul {100 * pr['draw']:.0f} %, "
+            f"victoire {away} {100 * pr['away_win']:.0f} % (terrain {'neutre' if p['neutral'] else 'non neutre'}).", "",
+            f"Scores les plus probables : {scores}. Buts attendus {p['expected_goals'][0]:.2f} - "
+            f"{p['expected_goals'][1]:.2f} ; Elo {p['elo']['home']} - {p['elo']['away']}.", "",
+            f"*{p['note']}*", ""]
 
 
 def _form_table(form: dict[str, Any]) -> list[str]:
@@ -75,4 +98,6 @@ def to_markdown(report: dict[str, Any]) -> str:
                 f"{s['shots']} tirs dont {s['shots_on_target']} cadrés, xG {s['xg']:.2f}, "
                 f"{s['pass_accuracy_pct']:.1f} % de passes réussies, possession estimée {s['possession_pct']:.1f} %.", "",
                 f"![Carte des tirs de {s['team']}]({last['shot_map']})", ""]
+    if sec.get("prediction"):
+        out += _prediction_lines(sec["prediction"])
     return "\n".join(out)
