@@ -107,6 +107,7 @@ traces/
 - Modèle d'embeddings : multilingual-e5-small, recherche dense seule, morceaux de 600 caractères (sur 40 cas : Recall@5 0,89, MRR 0,76 ; bge-m3 et l'hybride sans gain fiable, l'hybride fragile aux fautes). Pas de seuil d'abstention sur le score. Détail dans docs/decisions.md et results/retrieval.md.
 - Extension niveau 3 : à choisir d'après un défaut mesuré au niveau 2.
 - Répartition : Simon fait le corpus, le RAG, les 20 cas doc et les 5 cas absents. Gautier fait les données StatsBomb, les outils, les règles métier, les 10 tâches, les 5 cas ambigus et le benchmark LLM (détail dans GAUTIER.md). Ensemble : l'extension, les échecs, le rapport et la vidéo.
+- Pronostic (option B) : Elo + Poisson + simulation de Monte-Carlo sur les 49 940 matchs internationaux (martj42/international_results, sans clé), évalué sur 1 803 matchs depuis 2025 (Brier 0,497 contre 0,667 uniforme). Ajout au produit, pas l'extension.
 - Rapport d'avant-match : identifié par l'affiche, fichier `reports/<domicile>-vs-<exterieur>.json` (noms StatsBomb en anglais).
 
 ## Conventions de travail

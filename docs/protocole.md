@@ -42,4 +42,4 @@ Exemple de ligne :
 
 - Chaque métrique de qualité du tableau est donnée avec son intervalle de confiance à 95 % (bootstrap percentile, 2000 tirages, graine `SEED`).
 - `python scripts/compare_levels.py` compare les niveaux deux à deux sur les mêmes cas (bootstrap apparié) : différence, intervalle, et part des tirages où le niveau supérieur ne fait pas mieux. Un niveau « aide » si l'intervalle de la différence est au-dessus de 0.
-
+- Les cas en erreur d'infrastructure (quota, réseau) ne sont pas des mesures : ils sont exclus des métriques de qualité, comptés dans la colonne Erreurs, et relancés avec `--resume`. pass^3 ne porte que sur les tâches dont les 3 essais ont abouti.

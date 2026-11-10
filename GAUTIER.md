@@ -131,6 +131,14 @@ Les sections 1 à 5 sont faites (PR #3 à #8). Détail et raisons dans `docs/pla
 | C4 : Euro 2020 et CdM 2018 dans `config.COMPETITIONS` pour l'historique des confrontations | cache rempli, tests des tâches toujours verts | 22 nov. |
 | Benchmark de modèles (gpt-oss-120b, qwen3.8-27b, un modèle Ollama) | `results/bench-llm.md` | 22 nov. |
 
+## 8. Pronostic (option B) : ta partie
+
+Simon a fait le modèle (`src/predict.py` : `predict.simulate(home, away, neutral)`), son évaluation sur le passé (`results/prediction/backtest.md`) et l'animation (`src/animation.py`, onglet « Pronostic »). À toi, pour le 18 novembre :
+- outil `simulate_match(home_team, away_team, neutral)` dans `src/tools.py`, effet `compute`, sortie courte (probabilités, scores probables, Elo, note) ;
+- correspondance des noms : français et StatsBomb vers ceux du jeu international (mêmes noms anglais dans la plupart des cas ; vérifier « Korea Republic » et les autres écarts), erreur claire sinon ;
+- section « Pronostic » dans le rapport structuré (`report.build_sections` et `to_markdown`), donc aussi dans le PDF ;
+- un test par point, sans réseau (le CSV est en cache dans `data/cache/intl/`, `python scripts/eval_prediction.py` le télécharge).
+
 ## Calendrier
 
 | Quand | Quoi |
