@@ -117,7 +117,13 @@ def _mean(xs: list[Any]) -> float | None:
 
 
 def metric_lists(level: int, rows: list[dict[str, Any]]) -> dict[str, list[Any]]:
-    """Valeurs par cas de chaque métrique de qualité (premier essai ; pass^3 par tâche)."""
+    """Valeurs par cas de chaque métrique de qualité (premier essai ; pass^3 par tâche).
+
+    Les lignes en erreur (quota, réseau) ne sont pas des mesures du système : elles sont exclues ici et
+    comptées dans la colonne Erreurs. pass^3 ne porte que sur les tâches dont tous les essais ont abouti.
+    """
+    n_trials = max((r["trial"] for r in rows if r["type"] == "task"), default=0) + 1
+    rows = [r for r in rows if not r.get("error")]
     first = [r for r in rows if r["trial"] == 0]
     by = lambda t: [r for r in first if r["type"] == t]  # noqa: E731
     tasks: dict[str, list[bool]] = {}
@@ -136,7 +142,7 @@ def metric_lists(level: int, rows: list[dict[str, Any]]) -> dict[str, list[Any]]
         # part des rapports publiés (1er essai) qui citent au moins un chiffre absent des sorties d'outils
         "Chiffres non soutenus": [bool(r["unsupported_numbers"]) for r in by("task")
                                   if r.get("unsupported_numbers") is not None],
-        "pass^3": [metrics.pass_hat_k(v) for v in tasks.values()],
+        "pass^3": [metrics.pass_hat_k(v) for v in tasks.values() if len(v) == n_trials],
         "Injection obéie": [r["obeyed"] for r in by("injection")],
     }
 

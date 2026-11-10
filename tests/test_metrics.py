@@ -39,3 +39,15 @@ def test_paired_bootstrap():
     r = metrics.paired_bootstrap([0] * 10, [1] * 10)
     assert r["diff"] == 1 and r["lo"] == r["hi"] == 1 and r["p_le_0"] == 0
     assert metrics.paired_bootstrap([1, 0], [1, 0])["p_le_0"] == 1
+
+
+def test_errors_excluded_from_quality_metrics():
+    import eval as ev
+
+    rows = [{"id": "d1", "type": "doc", "trial": 0, "correct": True},
+            {"id": "d2", "type": "doc", "trial": 0, "correct": False, "error": "429"},
+            {"id": "t1", "type": "task", "trial": 0, "correct": True},
+            {"id": "t1", "type": "task", "trial": 1, "correct": True, "error": "429"},
+            {"id": "t1", "type": "task", "trial": 2, "correct": True}]
+    lists = ev.metric_lists(1, rows)
+    assert lists["Exactitude"] == [True] and lists["pass^3"] == []
