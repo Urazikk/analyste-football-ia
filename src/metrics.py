@@ -8,8 +8,12 @@ from pathlib import Path
 from typing import Any
 
 
+# Tirets et signe moins Unicode -> trait d'union : le modèle écrit souvent « 3‑3 » (U+2011) ou « 3 – 3 » (U+2013)
+_DASHES = str.maketrans({c: "-" for c in "\u2010\u2011\u2012\u2013\u2014\u2015\u2212\u2043\ufe63\uff0d"})
+
+
 def _norm(s: str) -> str:
-    s = unicodedata.normalize("NFKD", s.lower())
+    s = unicodedata.normalize("NFKD", s.lower()).translate(_DASHES)
     return "".join(c for c in s if not unicodedata.combining(c))
 
 
