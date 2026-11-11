@@ -4,8 +4,50 @@ Rendu final le 30 novembre, 23h59. Ta partie compte pour le niveau 2 (agent), no
 
 Répartition :
 - **Simon** : corpus, RAG (niveau 1), 20 cas « doc » et 5 cas « absent », choix des embeddings.
-- **Gautier** : tout ce qui suit.
+- **Gautier** : données StatsBomb, outils, règles métier, tâches et cas ambigus, benchmark de modèles (détail ci-dessous).
 - **À deux** : extension (niveau 3), analyse des 5 échecs, rapport, vidéo.
+
+## À faire : liste complète (mise à jour le 10 novembre)
+
+Tout ce qui te reste jusqu'au rendu, dans l'ordre. Les sections 1 à 8 plus bas sont faites (PR #3 à #8, #11 à #16) et restent pour mémoire.
+
+### A. Mesures (avec ta clé Groq, chaque jour, `--resume`)
+
+Les outils du niveau 2 sont figés depuis la PR #16 : ne plus en ajouter ni en modifier, sinon tout le niveau 2 est à remesurer. Simon mesure les cas doc, absents, robustesse et injection ; toi les tâches et les cas ambigus.
+
+| # | Tâche | Commande | Pour le |
+|---|---|---|---|
+| A1 | Cas ambigus, niveaux 0, 1 et 2 (10 cas, peu coûteux) | `python eval.py --levels 0 1 2 --types ambiguous --resume` | 13 nov. |
+| A2 | Tâches, niveaux 0 et 1 (sans outils : échec attendu, mais le tableau doit être complet) | `python eval.py --levels 0 1 --types task --resume` | 14 nov. |
+| A3 | Tâches au niveau 2 avec pass^3 (20 tâches x 3 essais, le plus cher : plusieurs jours) | `python eval.py --levels 2 --types task --resume` | 20 nov. |
+| A4 | Benchmark de modèles sur les tâches au niveau 2 : qwen3.8-27b (Groq), un modèle Ollama en local | `python eval.py --levels 2 --types task --model <modèle> --resume` puis `python scripts/bench_models.py` | 21 nov. |
+| A5 | Consigner dans `docs/decisions.md` : succès, pass^3, chiffres non soutenus, coût des tâches, résultat du benchmark | | 21 nov. |
+
+Avant chaque lancement complet : `--limit 3` pour vérifier. Pousser les résultats bruts (`results/raw_level*.jsonl`) au fil de l'eau, ils s'ajoutent à ceux de Simon sans les écraser.
+
+### B. Évaluation
+
+| # | Tâche | Commande | Pour le |
+|---|---|---|---|
+| B1 | Annotation à l'aveugle des 30 réponses du juge (ordre mélangé, identifiants masqués, tes réponses dans un champ séparé) | `python scripts/calibrate_judge.py --annotate --annotateur gautier` | 15 nov. |
+| B2 | Accord entre vous deux, sans LLM | `python scripts/calibrate_judge.py --accord` | 15 nov. |
+| B3 | Liste des échecs du niveau 2 sur les tâches, avec l'identifiant de la trace (`traces/`) : outil mal appelé, boucle qui tourne, chiffre inventé, publication non demandée... | dans `docs/decisions.md` ou `docs/echecs.md` | 21 nov. |
+
+### C. Décisions communes
+
+| Date | Quoi |
+|---|---|
+| 18 nov. | Option C du pronostic (LLM seul contre agent avec simulation) : oui ou non, selon l'avancement |
+| 22 nov. | Choix de l'extension (une seule technique), d'après les défauts mesurés au niveau 2 : les tiens (B3) et ceux de Simon (agent qui cherche en anglais, recherche sensible aux reformulations, coût 3,5 fois celui du RAG) |
+
+### D. Semaine du 23 novembre (à deux)
+
+| # | Tâche | Pour le |
+|---|---|---|
+| D1 | Extension : code, tests, mesure contre le niveau 2 (répartition fixée le 22) | 27 nov. |
+| D2 | Rapport : tes parties dans `docs/rapport/rapport.md` (agent et tâches, pass^3, benchmark de modèles, coût des tâches, deux des cinq échecs) ; `python scripts/build_report.py` régénère le PDF | 28 nov. |
+| D3 | Vidéo : les scènes « tâche multi-étapes avec sa trace » et « action validée » (publication d'un rapport depuis l'interface, puis PDF) | 28 nov. |
+| D4 | Vérification depuis un clone neuf : installation, `pytest`, `python eval.py --table-only`, interface | 29 nov. |
 
 ## 0. Installation (une fois)
 
@@ -41,12 +83,13 @@ Lis avant de coder : `CLAUDE.md` (règles du projet), `docs/protocole.md` (proto
 
 ## Contexte déjà décidé
 
-- Compétitions dans `src/config.py` (`COMPETITIONS`) : Euro 2024 `(55, 282)`, Copa América 2024 `(223, 282)`, CdM 2022 `(43, 106)`. Des sélections nationales.
-- Aucune compétition future n'est dans les données ouvertes. Le rapport d'avant-match porte donc sur une **affiche donnée par l'utilisateur** (« France - Espagne ») et s'appuie sur les **derniers matchs disponibles** des deux équipes.
-- `publish_report(home_team, away_team, title, content)` est déjà écrit. Il crée `STATE_DIR/reports/<domicile>-vs-<exterieur>.json` (ex. `france-vs-spain.json`). C'est le seul outil irréversible : la boucle demande une confirmation avant de l'exécuter.
-- StatsBomb nomme les équipes en anglais (`Spain`, `Germany`). L'utilisateur écrit en français : il faut normaliser.
+- Compétitions StatsBomb (`config.COMPETITIONS`) : Euro 2020 et 2024, Copa América 2024, Coupe du monde 2018 et 2022 (262 matchs, cache de 872 Mo : `python scripts/fetch_statsbomb.py`).
+- Pronostic : 49 940 matchs internationaux en cache (`data/cache/intl/`, `python scripts/eval_prediction.py` les télécharge).
+- LLM : `openai/gpt-oss-120b` via Groq ; juge de fidélité : `qwen/qwen3.8-27b`.
+- `publish_report` est la seule action irréversible : règles métier vérifiées par du code, puis confirmation. Le rapport porte sur une affiche donnée par l'utilisateur, avec les sections chiffrées calculées par le code (forme, confrontations, dernier match, pronostic).
+- Jeu de test : 80 cas (40 doc, 10 absents, 20 tâches, 10 ambigus), plus 40 reformulations (`tests_robustesse.jsonl`) et 10 cas d'injection (`tests_injection.jsonl`).
 
-## 1. Couche de données StatsBomb (`src/data.py`, à créer)
+## 1. Couche de données StatsBomb (`src/data.py`) : fait
 
 - Charger matchs et événements via `statsbombpy` (`sb.matches`, `sb.events`), sans clé.
 - Mettre en cache sur disque dans `data/cache/` (déjà ignoré par git) : un fichier par match. Deuxième appel sans réseau.
@@ -55,7 +98,7 @@ Lis avant de coder : `CLAUDE.md` (règles du projet), `docs/protocole.md` (proto
 
 Fini quand : le cache se remplit, `resolve_team` est testé, rien n'est téléchargé deux fois.
 
-## 2. Les 4 outils de lecture et de calcul (`src/tools.py`)
+## 2. Les 4 outils de lecture et de calcul (`src/tools.py`) : fait
 
 Les schémas JSON sont déjà dans `REGISTRY`. Tu peux les ajuster, en gardant un effet par outil (`read`, `compute`, `irreversible`).
 
@@ -72,7 +115,7 @@ Points d'attention :
 
 Fini quand : chaque outil a un test sur un match réel (depuis le cache), et `python -c "from src.tools import REGISTRY; ..."` marche.
 
-## 3. Règles métier de `publish_report` (`check_publish_report`)
+## 3. Règles métier de `publish_report` (`check_publish_report`) : fait
 
 Déjà fait : rapport unique par affiche, contenu de 200 caractères minimum. À ajouter, vérifié par du code :
 - les deux équipes existent dans les données et sont différentes ;
@@ -81,12 +124,12 @@ Déjà fait : rapport unique par affiche, contenu de 200 caractères minimum. À
 
 Fini quand : un test pytest par règle.
 
-## 4. Interface (`src/app.py`)
+## 4. Interface (`src/app.py`) : fait
 
 - Afficher l'image quand `plot_shots` a été appelé.
 - Vérifier le parcours de validation : bouton Valider, rapport publié, trace visible. Il servira pour la vidéo.
 
-## 5. Jeu de test : 10 tâches et 5 cas ambigus (`tests.jsonl`)
+## 5. Jeu de test : 10 tâches et 5 cas ambigus (`tests.jsonl`) : fait
 
 Format dans `docs/protocole.md`, exemples `task-01`, `amb-01`, `amb-02` déjà présents.
 Les 20 cas `doc` et 5 cas `absent` de Simon sont écrits : ajouter tes lignes à la suite, sans toucher aux leurs. `pytest` vérifie que les identifiants restent uniques.
@@ -94,7 +137,7 @@ Les 20 cas `doc` et 5 cas `absent` de Simon sont écrits : ajouter tes lignes à
 - **5 cas ambigus ou hors sujet** : `clarify` (« le dernier match », sans équipe) ou `refuse` (hors football).
 - Vérifier les réponses attendues à la main dans les données, avant de lancer le modèle.
 
-## 6. Mesures
+## 6. Mesures : voir « À faire », partie A
 
 ```bash
 python scripts/fetch_statsbomb.py                                  # cache des données (une fois)
@@ -116,7 +159,7 @@ python scripts/bench_models.py
 - Consigner succès, pass^3, chiffres non soutenus, tokens et latence dans `docs/decisions.md`.
 - Noter les échecs observés (outil mal appelé, boucle qui tourne, chiffre inventé) : ils servent à choisir l'extension du niveau 3.
 
-## 7. Plan ambitieux (9 novembre) : tes nouvelles tâches
+## 7. Plan ambitieux (9 novembre) : fait, sauf mesures, annotation et benchmark (voir « À faire »)
 
 Les sections 1 à 5 sont faites (PR #3 à #8). Détail et raisons dans `docs/plan.md`, section 3.
 
@@ -131,7 +174,7 @@ Les sections 1 à 5 sont faites (PR #3 à #8). Détail et raisons dans `docs/pla
 | C4 : Euro 2020 et CdM 2018 dans `config.COMPETITIONS` pour l'historique des confrontations | cache rempli, tests des tâches toujours verts | 22 nov. |
 | Benchmark de modèles (gpt-oss-120b, qwen3.8-27b, un modèle Ollama) | `results/bench-llm.md` | 22 nov. |
 
-## 8. Pronostic (option B) : ta partie
+## 8. Pronostic (option B) : fait (PR #16)
 
 Simon a fait le modèle (`src/predict.py` : `predict.simulate(home, away, neutral)`), son évaluation sur le passé (`results/prediction/backtest.md`) et l'animation (`src/animation.py`, onglet « Pronostic »). À toi, pour le 18 novembre :
 - outil `simulate_match(home_team, away_team, neutral)` dans `src/tools.py`, effet `compute`, sortie courte (probabilités, scores probables, Elo, note) ;
@@ -143,7 +186,7 @@ Simon a fait le modèle (`src/predict.py` : `predict.simulate(home, away, neutra
 
 | Quand | Quoi |
 |---|---|
-| semaine 1 (jusqu'au 8 nov.) | installation, couche de données et cache, 10 tâches et 5 cas ambigus écrits |
-| semaine 2 (9 au 15 nov.) | 4 outils et leurs tests, règles métier |
-| semaine 3 (16 au 22 nov.) | interface, pass^3, benchmark LLM, liste des échecs |
-| semaine 4 (23 au 30 nov.) | extension, rapport, vidéo (avec Simon) |
+| 11 au 15 nov. | A1, A2, B1, B2 ; début de A3 |
+| 16 au 21 nov. | A3, A4, A5, B3 ; 18 nov. : option C du pronostic |
+| 22 nov. | choix de l'extension, avec Simon |
+| 23 au 29 nov. | D1 à D4, avec Simon |

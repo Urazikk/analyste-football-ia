@@ -37,3 +37,25 @@ def test_kappa():
     assert cj.kappa([(True, True), (False, False)]) == 1.0
     assert cj.kappa([(True, False), (False, True)]) < 0
     assert cj.kappa([(True, True), (True, True)]) is None
+
+
+def test_second_annotator_does_not_touch_simon(monkeypatch, tmp_path):
+    import json
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
+    import calibrate_judge as cj
+
+    f = tmp_path / "a.jsonl"
+    f.write_text("".join(json.dumps({"id": f"doc-{i}", "question": "q", "answer": "a", "sources": [], "humain": i % 2 == 0}) + "\n"
+                         for i in range(4)), encoding="utf-8")
+    monkeypatch.setattr(cj, "ANNOT", f)
+    monkeypatch.setattr(cj, "RESULTS_DIR", tmp_path)
+    answers = iter(["o", "", "n", "", "o", "", "n", ""])
+    monkeypatch.setattr("builtins.input", lambda *_: next(answers))
+    cj.annotate("gautier")
+    rows = [json.loads(l) for l in f.read_text(encoding="utf-8").splitlines()]
+    assert [r["humain"] for r in rows] == [True, False, True, False]
+    assert all(isinstance(r["humain_gautier"], bool) for r in rows)
+    assert "4 réponses annotées par les deux" in cj.agreement("gautier")
