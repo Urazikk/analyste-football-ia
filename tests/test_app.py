@@ -73,18 +73,18 @@ def test_app_validation_publishes_traces_and_shows_plot(monkeypatch, tmp_path):
     assert events[-2:] == ["confirmation", "tool"]
 
 
-def test_compare_tab_runs_three_levels(monkeypatch):
-    from src import agent, llm
+def test_compare_tab_runs_all_levels(monkeypatch):
+    from src import agent, level3, llm
 
     monkeypatch.setattr(rag, "get_index", lambda: SimpleNamespace(chunks=[]))
-    for mod, lv in ((llm, 0), (rag, 1), (agent, 2)):
+    for mod, lv in ((llm, 0), (rag, 1), (agent, 2), (level3, 3)):
         monkeypatch.setattr(mod, "answer", lambda q, lv=lv: Result(level=lv, answer=f"réponse {lv}", tokens_in=10 * (lv + 1)))
     at = AppTest.from_file("../src/app.py", default_timeout=30).run()
     at.text_area(key="cmp_q").input("Combien de joueurs ?").run()
     at.button(key="cmp_go").click().run()
     assert not at.exception
     texts = [m.value for m in at.markdown]
-    assert all(f"réponse {lv}" in texts for lv in (0, 1, 2))
+    assert all(f"réponse {lv}" in texts for lv in (0, 1, 2, 3))
 
 
 def test_reports_tab_offers_pdf(monkeypatch):

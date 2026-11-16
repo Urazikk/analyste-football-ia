@@ -33,14 +33,22 @@ LLM_MAX_TOKENS = int(os.getenv("LLM_MAX_TOKENS", "1024"))
 LLM_REASONING_EFFORT = os.getenv("LLM_REASONING_EFFORT", "")
 # Dossiers de documents ajoutés au corpus (ex. documents piégés du test d'injection), séparés par os.pathsep
 EXTRA_CORPUS_DIRS: list[Path] = [Path(d) for d in os.getenv("EXTRA_CORPUS_DIRS", "").split(os.pathsep) if d]
-# Tarif payant équivalent (USD par million de tokens), pour afficher le coût ; Groq gpt-oss-120b, nov. 2026.
-# On reste sur l'offre gratuite : c'est ce que coûterait la même requête en offre payante.
-PRICE_IN_PER_MTOK = float(os.getenv("PRICE_IN_PER_MTOK", "0.15"))
-PRICE_OUT_PER_MTOK = float(os.getenv("PRICE_OUT_PER_MTOK", "0.60"))
+# Tarif par modèle (USD par million de tokens, entrée et sortie), relevé en novembre 2026.
+# PRICE_IN_PER_MTOK et PRICE_OUT_PER_MTOK, s'ils sont renseignés, remplacent ce tableau.
+PRICES: dict[str, tuple[float, float]] = {
+    "gpt-6-luna": (0.10, 0.50),
+    "openai/gpt-oss-120b": (0.15, 0.60),
+}
+PRICE_IN_PER_MTOK: float | None = float(v) if (v := os.getenv("PRICE_IN_PER_MTOK", "")) else None
+PRICE_OUT_PER_MTOK: float | None = float(v) if (v := os.getenv("PRICE_OUT_PER_MTOK", "")) else None
 
 
 def cost_usd(tokens_in: int, tokens_out: int) -> float:
-    return (tokens_in * PRICE_IN_PER_MTOK + tokens_out * PRICE_OUT_PER_MTOK) / 1e6
+    """Coût au tarif du modèle courant ; 0 pour un modèle sans tarif connu (ex. Ollama en local)."""
+    p_in, p_out = PRICES.get(LLM_MODEL, (0.0, 0.0))
+    p_in = p_in if PRICE_IN_PER_MTOK is None else PRICE_IN_PER_MTOK
+    p_out = p_out if PRICE_OUT_PER_MTOK is None else PRICE_OUT_PER_MTOK
+    return (tokens_in * p_in + tokens_out * p_out) / 1e6
 
 AGENT_MAX_STEPS = int(os.getenv("AGENT_MAX_STEPS", "8"))
 AGENT_MAX_TOKENS = int(os.getenv("AGENT_MAX_TOKENS", "20000"))
