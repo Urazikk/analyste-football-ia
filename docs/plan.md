@@ -170,3 +170,35 @@ Vision de Simon : un analyste qui pronostique l'issue d'un match. Ajout au produ
 | Outil `simulate_match` pour l'agent (effet compute), noms français et StatsBomb vers ceux du jeu international, section « Pronostic » du rapport d'avant-match et de son PDF | Gautier | à faire, pour le 18 nov. |
 | Option C (LLM seul contre agent avec simulation, sur des matchs postérieurs à ses connaissances) | ensemble | décision le 18 nov. selon l'avancement |
 
+
+## 5. Deux pistes indépendantes (décidé le 16 novembre)
+
+Les niveaux 0 à 2 sont mesurés sur les 80 cas avec `gpt-6-luna`, robustesse et injection comprises. Pour la suite, chaque livrable a un seul propriétaire ; la mise en commun n'a lieu que le 28 novembre. Cette section remplace la répartition « ensemble » des sections 2 et 3 pour l'extension, les échecs, le rapport et la vidéo.
+
+### Piste Simon : extension et tableau final
+
+| # | Tâche | Pour le |
+|---|---|---|
+| S1 | Tarif de `gpt-6-luna`, colonne Coût régénérée, 6 verdicts de fidélité manquants (avant la fusion de la PR 21) | 17 nov. |
+| S2 | Vérifier à la main « chiffres non soutenus » (0,80) sur 3 rapports | 18 nov. |
+| S3 | Choix de l'extension d'après S2 et les mesures existantes, consigné dans `docs/decisions.md` | 19 nov. |
+| S4 | Niveau 3 dans `src/level3.py`, tests sans API | 23 nov. |
+| S5 | Mesure du niveau 3 sur les 80 cas avec pass^3, comparaison appariée contre le niveau 2 | 25 nov. |
+| S6 | Niveau 3 dans `eval.py` et dans l'interface | 25 nov. |
+| S7 | Rapport : cas d'usage, architecture, RAG, évaluation, tableau, extension (`docs/rapport/simon.md`) ; `scripts/build_report.py` assemble les deux fichiers | 27 nov. |
+
+### Piste Gautier : benchmark, échecs, vidéo
+
+Détail dans `GAUTIER.md` (G1 à G7) : second annotateur (18), benchmark de modèles (22), analyse de 5 échecs (24), traces de démo (25), vidéo et sections du rapport (27).
+
+### Fichiers réservés
+
+| Qui | Fichiers |
+|---|---|
+| Simon | `src/level3.py`, `eval.py`, `results/table.md`, `results/raw_level3.jsonl`, `docs/rapport/simon.md` |
+| Gautier | `results/raw_level0.jsonl` à `raw_level2.jsonl`, `results/bench-llm.md`, `docs/echecs.md`, `docs/rapport/gautier.md`, annotations, `traces/` |
+| Figés | `src/tools.py`, `src/agent.py`, `tests.jsonl` |
+
+### Mise en commun
+
+28 novembre : assemblage et relecture croisée du rapport. 29 : vérification depuis un clone neuf. 30 : rendu.

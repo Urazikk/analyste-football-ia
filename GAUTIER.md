@@ -2,52 +2,49 @@
 
 Rendu final le 30 novembre, 23h59. Ta partie compte pour le niveau 2 (agent), noté avec l'interface et le contrôle des actions (6 points), et pour les tâches de l'évaluation (pass^3).
 
-Répartition :
-- **Simon** : corpus, RAG (niveau 1), 20 cas « doc » et 5 cas « absent », choix des embeddings.
-- **Gautier** : données StatsBomb, outils, règles métier, tâches et cas ambigus, benchmark de modèles (détail ci-dessous).
-- **À deux** : extension (niveau 3), analyse des 5 échecs, rapport, vidéo.
+Répartition (revue le 16 novembre) : deux pistes indépendantes, mise en commun le 28 novembre seulement.
+- **Simon** : extension (niveau 3) en entier, tableau final des niveaux 0 à 3, sections du rapport sur l'architecture, le RAG, l'évaluation et l'extension.
+- **Gautier** : second annotateur, benchmark de modèles, analyse des 5 échecs, traces de démo, vidéo, sections du rapport sur l'agent, le benchmark, les coûts, les échecs et les limites.
+- **À deux, du 28 au 30** : assemblage du rapport, vérification depuis un clone neuf, rendu.
 
-## À faire : liste complète (mise à jour le 10 novembre)
+## À faire : ta piste (mise à jour le 16 novembre)
 
-Tout ce qui te reste jusqu'au rendu, dans l'ordre. Les sections 1 à 8 plus bas sont faites (PR #3 à #8, #11 à #16) et restent pour mémoire.
+Les sections 1 à 8 plus bas sont faites et restent pour mémoire. Rien de ce qui suit ne dépend du travail de Simon : tout porte sur les niveaux 0 à 2, déjà mesurés.
 
-### A. Mesures (avec ta clé Groq, chaque jour, `--resume`)
+### État des mesures au 16 novembre
 
-Les outils du niveau 2 sont figés depuis la PR #16 : ne plus en ajouter ni en modifier, sinon tout le niveau 2 est à remesurer. Simon mesure les cas doc, absents, robustesse et injection ; toi les tâches et les cas ambigus.
+- Le tableau des niveaux utilise maintenant `gpt-6-luna` (clé OpenAI de l'encadrant, raisonnement désactivé), à cause du quota Groq. Niveaux 0 à 2 mesurés sur les 80 cas, pass^3 compris, plus la robustesse et l'injection. Détail dans `docs/decisions.md`, lignes du 16 novembre.
+- Niveau 2 avec `gpt-6-luna` : succès des tâches 1,00, pass^3 1,00, exactitude 0,95. Défauts mesurés : chiffres non soutenus dans 0,80 des rapports publiés, cas ambigus 0,60, MRR 0,54.
+- Les mesures `openai/gpt-oss-120b` restent dans `results/raw_level*.jsonl` (étiquetées par modèle) et servent au benchmark. Au niveau 2, 20 essais de tâches sur 60 sont faits (tâches 1 à 7), le reste est en erreur de quota.
+- Tu n'as pas besoin de la clé de l'encadrant : ta clé Groq et Ollama suffisent. `.env.example` garde Groq par défaut.
 
-| # | Tâche | Commande | Pour le |
+### Tes tâches
+
+| # | Tâche | Commande ou fichier | Pour le |
 |---|---|---|---|
-| A1 | Cas ambigus, niveaux 0, 1 et 2 (10 cas, peu coûteux) | `python eval.py --levels 0 1 2 --types ambiguous --resume` | 13 nov. |
-| A2 | Tâches, niveaux 0 et 1 (sans outils : échec attendu, mais le tableau doit être complet) | `python eval.py --levels 0 1 --types task --resume` | 14 nov. |
-| A3 | Tâches au niveau 2 avec pass^3 (20 tâches x 3 essais, le plus cher : plusieurs jours) | `python eval.py --levels 2 --types task --resume` | 20 nov. |
-| A4 | Benchmark de modèles sur les tâches au niveau 2 : qwen3.8-27b (Groq), un modèle Ollama en local | `python eval.py --levels 2 --types task --model <modèle> --resume` puis `python scripts/bench_models.py` | 21 nov. |
-| A5 | Consigner dans `docs/decisions.md` : succès, pass^3, chiffres non soutenus, coût des tâches, résultat du benchmark | | 21 nov. |
+| G1 | Annotation à l'aveugle des 30 réponses du juge, puis accord entre humains | `python scripts/calibrate_judge.py --annotate --annotateur gautier` puis `--accord` | 18 nov. |
+| G2 | Benchmark au niveau 2 sur les tâches : finir `openai/gpt-oss-120b` (40 essais restants, environ 2 jours de quota), puis un modèle Ollama en local | `python eval.py --levels 2 --types task --trials 3 --resume`, puis `--model <modèle> --base-url http://localhost:11434/v1`, puis `python scripts/bench_models.py` | 22 nov. |
+| G3 | Analyse de 5 échecs avec leur trace, à partir des résultats déjà dans le dépôt : chiffres non soutenus, cas ambigus ratés au niveau 2, affiche inversée par gpt-oss-120b (task-01, task-03), échec de task-04, abstentions manquées | `docs/echecs.md` | 24 nov. |
+| G4 | Traces de démo (une par scène de la vidéo) | `traces/`, ajoutées avec `git add -f` | 25 nov. |
+| G5 | Vidéo de 3 à 5 minutes : cas réussi, abstention, tâche multi-étapes avec sa trace, action validée. Les quatre scènes se tournent sur les niveaux 0 à 2 | | 27 nov. |
+| G6 | Rapport : agent et outils, benchmark de modèles, coûts, les 5 échecs, limites | `docs/rapport/gautier.md` | 27 nov. |
+| G7 | Consigner G1 et G2 dans `docs/decisions.md` (lignes ajoutées en fin de fichier) | | 22 nov. |
 
-Avant chaque lancement complet : `--limit 3` pour vérifier. Pousser les résultats bruts (`results/raw_level*.jsonl`) au fil de l'eau, ils s'ajoutent à ceux de Simon sans les écraser.
+### Règles pour travailler sans se gêner
 
-### B. Évaluation
+- Partir de `main` après la fusion de la PR 21. Une branche par sujet, puis une pull request.
+- Tes fichiers : `results/raw_level0.jsonl` à `raw_level2.jsonl` (pour le benchmark), `results/bench-llm.md`, `docs/echecs.md`, `docs/rapport/gautier.md`, `docs/annotations_fidelite.jsonl`, `traces/`.
+- Fichiers de Simon, à ne pas modifier : `src/level3.py`, `eval.py`, `results/table.md`, `results/raw_level3.jsonl`, `docs/rapport/simon.md`.
+- Figés pour les deux : `src/tools.py`, `src/agent.py`, `tests.jsonl`. Y toucher oblige à tout remesurer.
+- `docs/decisions.md` : ajouter des lignes à la fin, sans modifier les existantes.
 
-| # | Tâche | Commande | Pour le |
-|---|---|---|---|
-| B1 | Annotation à l'aveugle des 30 réponses du juge (ordre mélangé, identifiants masqués, tes réponses dans un champ séparé) | `python scripts/calibrate_judge.py --annotate --annotateur gautier` | 15 nov. |
-| B2 | Accord entre vous deux, sans LLM | `python scripts/calibrate_judge.py --accord` | 15 nov. |
-| B3 | Liste des échecs du niveau 2 sur les tâches, avec l'identifiant de la trace (`traces/`) : outil mal appelé, boucle qui tourne, chiffre inventé, publication non demandée... | dans `docs/decisions.md` ou `docs/echecs.md` | 21 nov. |
-
-### C. Décisions communes
+### Mise en commun
 
 | Date | Quoi |
 |---|---|
-| 18 nov. | Option C du pronostic (LLM seul contre agent avec simulation) : oui ou non, selon l'avancement |
-| 22 nov. | Choix de l'extension (une seule technique), d'après les défauts mesurés au niveau 2 : les tiens (B3) et ceux de Simon (agent qui cherche en anglais, recherche sensible aux reformulations, coût 3,5 fois celui du RAG) |
-
-### D. Semaine du 23 novembre (à deux)
-
-| # | Tâche | Pour le |
-|---|---|---|
-| D1 | Extension : code, tests, mesure contre le niveau 2 (répartition fixée le 22) | 27 nov. |
-| D2 | Rapport : tes parties dans `docs/rapport/rapport.md` (agent et tâches, pass^3, benchmark de modèles, coût des tâches, deux des cinq échecs) ; `python scripts/build_report.py` régénère le PDF | 28 nov. |
-| D3 | Vidéo : les scènes « tâche multi-étapes avec sa trace » et « action validée » (publication d'un rapport depuis l'interface, puis PDF) | 28 nov. |
-| D4 | Vérification depuis un clone neuf : installation, `pytest`, `python eval.py --table-only`, interface | 29 nov. |
+| 28 nov. | Assemblage du rapport (4 pages maximum), relecture croisée |
+| 29 nov. | Vérification depuis un clone neuf : installation, `pytest`, `python eval.py --table-only`, interface |
+| 30 nov. | Rendu, la journée sert de marge |
 
 ## 0. Installation (une fois)
 
@@ -184,9 +181,4 @@ Simon a fait le modèle (`src/predict.py` : `predict.simulate(home, away, neutra
 
 ## Calendrier
 
-| Quand | Quoi |
-|---|---|
-| 11 au 15 nov. | A1, A2, B1, B2 ; début de A3 |
-| 16 au 21 nov. | A3, A4, A5, B3 ; 18 nov. : option C du pronostic |
-| 22 nov. | choix de l'extension, avec Simon |
-| 23 au 29 nov. | D1 à D4, avec Simon |
+Voir « À faire : ta piste » en haut du fichier.

@@ -90,9 +90,9 @@ traces/
 - [x] Mesures : niveaux 0 et 1 sur les 80 cas ; niveau 2 sur les cas ambigus ; injection aux niveaux 1 et 2
 - [x] Mesures : niveaux 0 à 2 complets sur les 80 cas avec gpt-6-luna, pass^3 compris (16 novembre)
 - [x] Mesures : robustesse (40 reformulations) et injection (10 cas) refaites avec gpt-6-luna (16 novembre)
-- [ ] Gautier : second annotateur du juge, benchmark de modèles, liste des échecs du niveau 2
-- [ ] 22 novembre : choix de l'extension
-- [ ] Semaine 4 : extension et sa mesure, analyse de 5 échecs, rapport, vidéo, traces de démo
+- [ ] Simon : choix de l'extension (19 nov.), niveau 3 codé et mesuré (25 nov.), ses sections du rapport (27 nov.)
+- [ ] Gautier : second annotateur, benchmark de modèles, 5 échecs, traces de démo, vidéo, ses sections du rapport (27 nov.)
+- [ ] 28 au 30 novembre : assemblage du rapport, vérification depuis un clone neuf, rendu
 
 ## Planning
 - Semaine 1 (2 au 8 nov.) : thème, corpus, jeu de test, niveau 0, protocole de test.
@@ -106,7 +106,7 @@ traces/
 - Corpus RAG : lois du jeu IFAB en français, téléchargées par un script, non commitées (licence) ; Wikipédia en complément.
 - Modèle d'embeddings : multilingual-e5-small, recherche dense seule, morceaux de 600 caractères (sur 40 cas : Recall@5 0,89, MRR 0,76 ; bge-m3 et l'hybride sans gain fiable, l'hybride fragile aux fautes). Pas de seuil d'abstention sur le score. Détail dans docs/decisions.md et results/retrieval.md.
 - Extension niveau 3 : à choisir d'après un défaut mesuré au niveau 2.
-- Répartition : Simon fait le corpus, le RAG, les 20 cas doc et les 5 cas absents. Gautier fait les données StatsBomb, les outils, les règles métier, les 10 tâches, les 5 cas ambigus et le benchmark LLM (détail dans GAUTIER.md). Ensemble : l'extension, les échecs, le rapport et la vidéo.
+- Répartition (revue le 16 novembre, docs/plan.md section 5) : deux pistes indépendantes. Simon : extension (niveau 3) en entier, tableau final, sections du rapport sur l'architecture, le RAG, l'évaluation et l'extension. Gautier : second annotateur, benchmark de modèles, analyse des 5 échecs, traces de démo, vidéo, sections du rapport sur l'agent, les coûts et les limites (GAUTIER.md). Ensemble du 28 au 30 seulement : assemblage du rapport, clone neuf, rendu.
 - Pronostic (option B) : Elo + Poisson + simulation de Monte-Carlo sur les 49 940 matchs internationaux (martj42/international_results, sans clé), évalué sur 1 803 matchs depuis 2025 (Brier 0,497 contre 0,667 uniforme). Ajout au produit, pas l'extension.
 - Rapport d'avant-match : identifié par l'affiche, fichier `reports/<domicile>-vs-<exterieur>.json` (noms StatsBomb en anglais).
 
