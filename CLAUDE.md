@@ -51,7 +51,7 @@ Barème (sur 20) : système fonctionnel niveaux 0 à 2 et interface, y compris l
 ```
 README.md, requirements.txt, .env.example, .gitignore
 eval.py            # python eval.py : tous les niveaux, results/table.md
-tests.jsonl        # jeu de test (80 cas)
+tests.jsonl        # jeu de test (80 cas) ; tests_ambigus.jsonl, tests_absents.jsonl, tests_robustesse.jsonl, tests_injection.jsonl à part
 docs/
   sujet.pdf
   protocole.md     # protocole de test figé
@@ -64,6 +64,7 @@ src/
   llm.py           # client compatible OpenAI + niveau 0
   rag.py           # niveau 1 : découpage, recherche dense, réponse citée, abstention
   agent.py         # niveau 2, boucle écrite à la main (faite et testée)
+  level3.py        # niveau 3 : plan sans outils, puis boucle du niveau 2, publication gardée par le plan
   tools.py         # outils + schémas JSON + effet + règles métier (figés)
   metrics.py       # Recall@k, MRR, mots clés, état final, pass^k
   app.py           # interface Streamlit avec validation des actions
@@ -91,7 +92,8 @@ traces/
 - [x] Mesures : niveaux 0 à 2 complets sur les 80 cas avec gpt-6-luna, pass^3 compris (16 novembre)
 - [x] Mesures : robustesse (40 reformulations) et injection (10 cas) refaites avec gpt-6-luna (16 novembre)
 - [x] Extension choisie le 16 novembre : planification (docs/plan.md section 6)
-- [ ] Simon : 20 cas ambigus complémentaires (18 nov.), niveau 3 codé et mesuré (25 nov.), ses sections du rapport (27 nov.)
+- [x] Niveau 3 codé (`src/level3.py`), mesuré sur les 80 cas, 30 cas ambigus, 10 cas absents nouveaux, robustesse et injection (16 novembre) : Ambigu 0,59 → 0,98, sans régression fiable
+- [ ] Simon : ses sections du rapport (27 nov.)
 - [ ] Gautier : second annotateur, benchmark de modèles, 5 échecs, traces de démo, vidéo, ses sections du rapport (27 nov.)
 - [ ] 28 au 30 novembre : assemblage du rapport, vérification depuis un clone neuf, rendu
 

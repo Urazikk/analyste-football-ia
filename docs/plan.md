@@ -238,5 +238,5 @@ Fichier : `src/level3.py`, `answer(question) -> Result` comme les autres niveaux
 | # | Tâche | Pour le |
 |---|---|---|
 | S4a | `tests_ambigus.jsonl` (20 cas), relus, puis niveaux 0 à 2 mesurés dessus avec 3 essais : fait le 16 | 18 nov. |
-| S4b | `src/level3.py` et ses tests sans API | 23 nov. |
-| S5 | Mesure du niveau 3 (80 cas, cas ambigus complémentaires, robustesse, injection), comparaison appariée | 25 nov. |
+| S4b | `src/level3.py` et ses tests sans API : fait le 16 | 23 nov. |
+| S5 | Mesure du niveau 3 (80 cas, cas ambigus complémentaires, robustesse, injection), comparaison appariée : fait le 16 (version 2 du plan) | 25 nov. |
