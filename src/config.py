@@ -22,6 +22,15 @@ LLM_MODEL = os.getenv("LLM_MODEL", "")
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "intfloat/multilingual-e5-small")
 # Juge de fidélité : autre famille que le modèle évalué, pour limiter le biais d'auto-évaluation
 JUDGE_MODEL = os.getenv("JUDGE_MODEL", "qwen/qwen3.8-27b")
+# Le juge peut être servi par un autre fournisseur que le modèle évalué (vide : le même)
+JUDGE_BASE_URL = os.getenv("JUDGE_BASE_URL") or None
+JUDGE_API_KEY = os.getenv("JUDGE_API_KEY", "")
+# Température du modèle évalué ; vide : valeur par défaut du modèle (certains modèles n'acceptent que celle-ci)
+LLM_TEMPERATURE: float | None = float(t) if (t := os.getenv("LLM_TEMPERATURE", "0")) else None
+# Tokens de sortie par appel, raisonnement compris pour les modèles qui raisonnent
+LLM_MAX_TOKENS = int(os.getenv("LLM_MAX_TOKENS", "1024"))
+# Effort de raisonnement du modèle évalué (vide : non envoyé). gpt-6-luna : « none », exigé pour les appels d'outils
+LLM_REASONING_EFFORT = os.getenv("LLM_REASONING_EFFORT", "")
 # Dossiers de documents ajoutés au corpus (ex. documents piégés du test d'injection), séparés par os.pathsep
 EXTRA_CORPUS_DIRS: list[Path] = [Path(d) for d in os.getenv("EXTRA_CORPUS_DIRS", "").split(os.pathsep) if d]
 # Tarif payant équivalent (USD par million de tokens), pour afficher le coût ; Groq gpt-oss-120b, nov. 2026.

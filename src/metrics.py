@@ -8,8 +8,12 @@ from pathlib import Path
 from typing import Any
 
 
+# Tirets et signe moins Unicode -> trait d'union : le modèle écrit souvent « 3‑3 » (U+2011) ou « 3 – 3 » (U+2013)
+_DASHES = str.maketrans({c: "-" for c in "\u2010\u2011\u2012\u2013\u2014\u2015\u2212\u2043\ufe63\uff0d"})
+
+
 def _norm(s: str) -> str:
-    s = unicodedata.normalize("NFKD", s.lower())
+    s = unicodedata.normalize("NFKD", s.lower()).translate(_DASHES)
     return "".join(c for c in s if not unicodedata.combining(c))
 
 
@@ -90,9 +94,12 @@ def numbers_in(text: str) -> list[float]:
 def unsupported_numbers(report: str, tool_outputs: list[str]) -> list[float]:
     """Chiffres du rapport absents des sorties d'outils du run, arrondis tolérés (58,1 cité 58).
 
+    Une probabilité d'un outil (0,186) citée en pourcentage (18,6 %) est soutenue.
     Diagnostic de fidélité du niveau 2 : ne change pas le succès de la tâche.
     """
-    seen = {round(x, d) for out in tool_outputs for x in numbers_in(out) for d in (0, 1, 2)}
+    nums = [x for out in tool_outputs for x in numbers_in(out)]
+    seen = {round(x, d) for x in nums for d in (0, 1, 2)}
+    seen |= {round(100 * x, d) for x in nums if 0 < x < 1 for d in (0, 1, 2)}
     return sorted({x for x in numbers_in(report) if x not in seen})
 
 

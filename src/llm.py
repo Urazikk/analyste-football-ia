@@ -20,33 +20,43 @@ class LLMResponse:
     latency_s: float = 0.0
 
 
-_client = None
+_clients: dict[str | None, Any] = {}
 
 
-def _get_client():
-    global _client
-    if _client is None:
+def _get_client(base_url: str | None = None, api_key: str = ""):
+    url = base_url or config.LLM_BASE_URL
+    if url not in _clients:
         from openai import OpenAI
 
         # max_retries : reprise avec attente sur 429 (offre gratuite limitée en tokens par minute)
-        _client = OpenAI(base_url=config.LLM_BASE_URL, api_key=config.LLM_API_KEY or "none", max_retries=8)
-    return _client
+        _clients[url] = OpenAI(base_url=url, api_key=api_key or config.LLM_API_KEY or "none", max_retries=8)
+    return _clients[url]
 
 
 def chat(
     messages: list[dict[str, Any]],
     tools: list[dict[str, Any]] | None = None,
-    temperature: float = 0.0,
-    max_tokens: int = 1024,
+    temperature: float | None = None,
+    max_tokens: int | None = None,
     model: str | None = None,
+    base_url: str | None = None,
+    api_key: str = "",
 ) -> LLMResponse:
-    """Un appel au modèle. Les outils sont au format OpenAI (type=function)."""
+    """Un appel au modèle. Les outils sont au format OpenAI (type=function).
+
+    Sans température donnée, celle de la configuration s'applique (omise si elle est vide).
+    """
     kwargs: dict[str, Any] = {"model": model or config.LLM_MODEL, "messages": messages,
-                              "temperature": temperature, "max_tokens": max_tokens}
+                              "max_completion_tokens": max_tokens or config.LLM_MAX_TOKENS}
+    temperature = config.LLM_TEMPERATURE if temperature is None else temperature
+    if temperature is not None:
+        kwargs["temperature"] = temperature
+    if config.LLM_REASONING_EFFORT and kwargs["model"] == config.LLM_MODEL:
+        kwargs["reasoning_effort"] = config.LLM_REASONING_EFFORT
     if tools:
         kwargs["tools"] = tools
     t0 = time.perf_counter()
-    resp = _get_client().chat.completions.create(**kwargs)
+    resp = _get_client(base_url, api_key).chat.completions.create(**kwargs)
     msg = resp.choices[0].message
     calls = [{"id": c.id, "name": c.function.name, "arguments": c.function.arguments}
              for c in (msg.tool_calls or [])]

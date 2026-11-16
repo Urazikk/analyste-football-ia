@@ -12,10 +12,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import streamlit as st  # noqa: E402
 
-from src import agent, config, export, llm, rag, report  # noqa: E402
+from src import agent, config, export, level3, llm, rag, report  # noqa: E402
 from src.result import Result  # noqa: E402
 
-LEVELS = {0: "0 · LLM seul", 1: "1 · RAG", 2: "2 · Agent", 3: "3 · Extension"}
+LEVELS = {0: "0 · LLM seul", 1: "1 · RAG", 2: "2 · Agent", 3: "3 · Agent avec plan"}
 STATUS = {"abstained": ("Abstention : rien de fiable dans les documents.", st.info),
           "clarified": ("Question de précision.", st.info),
           "refused": ("Refus : hors sujet.", st.warning)}
@@ -89,15 +89,15 @@ def run_level(level: int, question: str) -> Result:
         return rag.answer(question)
     if level == 2:
         return agent.answer(question)
-    raise NotImplementedError("Niveau 3 : semaine 4")
+    return level3.answer(question)
 
 
 def tab_compare() -> None:
-    """Même question aux niveaux 0 à 2, côte à côte : réponse, sources, coût."""
+    """Même question aux niveaux 0 à 3, côte à côte : réponse, sources, coût."""
     q = st.text_area("Question à comparer", key="cmp_q")
-    if st.button("Comparer les niveaux 0, 1 et 2", key="cmp_go") and q:
-        with st.spinner("Trois réponses en cours..."):
-            st.session_state["cmp"] = {lv: run_level(lv, q) for lv in (0, 1, 2)}
+    if st.button("Comparer les niveaux 0 à 3", key="cmp_go") and q:
+        with st.spinner("Quatre réponses en cours..."):
+            st.session_state["cmp"] = {lv: run_level(lv, q) for lv in LEVELS}
     results = st.session_state.get("cmp")
     if not results:
         return

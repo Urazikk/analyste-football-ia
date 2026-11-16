@@ -1,6 +1,6 @@
 """Reproduit le tableau de résultats : python eval.py
 
-Options : --levels 0 1 2 3  --trials 3  --limit N  --resume  --table-only  --no-judge
+Options : --levels 0 1 2 3  --trials 3  --trial-types task ambiguous  --limit N  --resume  --table-only  --no-judge
 Sorties : results/raw_level{n}.jsonl (une ligne par cas et essai) et results/table.md.
 """
 from __future__ import annotations
@@ -15,7 +15,7 @@ import tempfile
 from pathlib import Path
 from typing import Any, Callable
 
-from src import agent, config, judge, llm, metrics, rag, tools
+from src import agent, config, judge, level3, llm, metrics, rag, tools
 from src.config import RESULTS_DIR, ROOT, SEED
 from src.result import Result
 
@@ -24,7 +24,7 @@ LEVELS: dict[int, Callable[[str], Result]] = {
     1: rag.answer,
     # En éval, l'utilisateur simulé valide toute action demandée : on vérifie l'état final.
     2: lambda q: agent.answer(q, confirm=lambda name, args: True),
-    # 3: extension, semaine 4
+    3: lambda q: level3.answer(q, confirm=lambda name, args: True),  # extension : planification
 }
 
 
@@ -183,6 +183,8 @@ def main() -> None:
     p = argparse.ArgumentParser()
     p.add_argument("--levels", type=int, nargs="+", default=sorted(LEVELS))
     p.add_argument("--trials", type=int, default=3, help="essais par tâche multi-étapes (pass^k)")
+    p.add_argument("--trial-types", nargs="+", default=["task"],
+                   help="types de cas répétés --trials fois (ex. task ambiguous pour results/ambigus)")
     p.add_argument("--limit", type=int, default=None)
     p.add_argument("--model", default=None, help="remplace LLM_MODEL (benchmark de modèles)")
     p.add_argument("--base-url", default=None, help="remplace LLM_BASE_URL")
@@ -225,7 +227,7 @@ def main() -> None:
         rows: list[dict[str, Any]] = []
         try:
             for case in tests:
-                n = a.trials if case["type"] == "task" else 1
+                n = a.trials if case["type"] in a.trial_types else 1
                 for trial in range(n):
                     if (case["id"], trial) in done:
                         rows.append(done[(case["id"], trial)])

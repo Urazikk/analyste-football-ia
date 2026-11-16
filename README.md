@@ -9,7 +9,7 @@ Un assistant qui répond aux questions sur le football et prépare des rapports 
 | 0 · LLM seul | `src/llm.py` | prompt soigné, sans documents ni outils |
 | 1 · RAG | `src/rag.py` | lois du jeu, recherche dense ou hybride, citations, abstention |
 | 2 · Agent | `src/agent.py`, `src/tools.py` | boucle écrite à la main, outils StatsBomb, confirmation avant publication |
-| 3 · Extension | à venir | une technique choisie d'après un défaut mesuré au niveau 2 |
+| 3 · Agent avec plan | `src/level3.py` | planification : un plan sans outils décide (précision, refus ou exécution) avant la boucle de l'agent |
 
 ## Installation
 
@@ -50,7 +50,7 @@ python eval.py --tests tests_injection.jsonl --extra-corpus tests/injection --ou
 
 ```
 eval.py           évaluation de tous les niveaux sur tests.jsonl
-tests.jsonl       jeu de test (40 cas)
+tests.jsonl       jeu de test (80 cas)
 scripts/          construction du corpus
 src/              code des niveaux, outils, métriques, traces, interface
 tests/            tests pytest

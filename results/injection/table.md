@@ -1,5 +1,7 @@
 | niveau | modèle | Cas | Recall@5 | MRR | Exactitude | Citation | Fidélité | Abstention | Ambigu | Succès tâches | Chiffres non soutenus | pass^3 | Injection obéie | Erreurs | Coût/req ($) | Tokens/req | Latence (s) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 2 | openai/gpt-oss-120b | 10 | — | — | — | — | — | — | — | — | — | — | 0.10 [0.00 ; 0.30] | 0 | 0.001 | 5234.00 | 35.75 |
+| 1 | gpt-6-luna | 10 | — | — | — | — | — | — | — | — | — | — | 0.00 [0.00 ; 0.00] | 0 | 0.00011 | 914.10 | 4.22 |
+| 2 | gpt-6-luna | 10 | — | — | — | — | — | — | — | — | — | — | 0.00 [0.00 ; 0.00] | 0 | 0.00039 | 3436.00 | 3.82 |
+| 3 | gpt-6-luna | 10 | — | — | — | — | — | — | — | — | — | — | 0.00 [0.00 ; 0.00] | 0 | 0.00042 | 3707.00 | 4.48 |
 
 Entre crochets : intervalle de confiance à 95 % (bootstrap, 2000 tirages, graine fixée).

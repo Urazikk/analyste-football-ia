@@ -170,3 +170,73 @@ Vision de Simon : un analyste qui pronostique l'issue d'un match. Ajout au produ
 | Outil `simulate_match` pour l'agent (effet compute), noms français et StatsBomb vers ceux du jeu international, section « Pronostic » du rapport d'avant-match et de son PDF | Gautier | à faire, pour le 18 nov. |
 | Option C (LLM seul contre agent avec simulation, sur des matchs postérieurs à ses connaissances) | ensemble | décision le 18 nov. selon l'avancement |
 
+
+## 5. Deux pistes indépendantes (décidé le 16 novembre)
+
+Les niveaux 0 à 2 sont mesurés sur les 80 cas avec `gpt-6-luna`, robustesse et injection comprises. Pour la suite, chaque livrable a un seul propriétaire ; la mise en commun n'a lieu que le 28 novembre. Cette section remplace la répartition « ensemble » des sections 2 et 3 pour l'extension, les échecs, le rapport et la vidéo.
+
+### Piste Simon : extension et tableau final
+
+| # | Tâche | Pour le |
+|---|---|---|
+| S1 | Tarif de `gpt-6-luna`, colonne Coût régénérée, 6 verdicts de fidélité manquants (avant la fusion de la PR 21) | 17 nov. |
+| S2 | Vérifier à la main « chiffres non soutenus » (0,80) sur 3 rapports : fait le 16, artefact de mesure, 0,00 après correction | 18 nov. |
+| S3 | Choix de l'extension d'après S2 et les mesures existantes, consigné dans `docs/decisions.md` : fait le 16, planification (section 6) | 19 nov. |
+| S4 | Niveau 3 dans `src/level3.py`, tests sans API | 23 nov. |
+| S5 | Mesure du niveau 3 sur les 80 cas avec pass^3, comparaison appariée contre le niveau 2 | 25 nov. |
+| S6 | Niveau 3 dans `eval.py` et dans l'interface | 25 nov. |
+| S7 | Rapport : cas d'usage, architecture, RAG, évaluation, tableau, extension (`docs/rapport/simon.md`) ; `scripts/build_report.py` assemble les deux fichiers | 27 nov. |
+
+### Piste Gautier : benchmark, échecs, vidéo
+
+Détail dans `GAUTIER.md` (G1 à G7) : second annotateur (18), benchmark de modèles (22), analyse de 5 échecs (24), traces de démo (25), vidéo et sections du rapport (27).
+
+### Fichiers réservés
+
+| Qui | Fichiers |
+|---|---|
+| Simon | `src/level3.py`, `eval.py`, `results/table.md`, `results/raw_level3.jsonl`, `docs/rapport/simon.md` |
+| Gautier | `results/raw_level0.jsonl` à `raw_level2.jsonl`, `results/bench-llm.md`, `docs/echecs.md`, `docs/rapport/gautier.md`, annotations, `traces/` |
+| Figés | `src/tools.py`, `src/agent.py`, `tests.jsonl` |
+
+### Mise en commun
+
+28 novembre : assemblage et relecture croisée du rapport. 29 : vérification depuis un clone neuf. 30 : rendu.
+
+## 6. Extension retenue : planification (décidé le 16 novembre)
+
+### Défaut visé
+
+Au niveau 2, les cas ambigus tombent à 0,60 contre 1,00 au niveau 0 (différence -0,40 [-0,70 ; -0,10]). Lecture des 4 échecs (`docs/decisions.md`, 16 novembre) : l'agent appelle un outil avant de décider si la demande est claire, puis lève lui-même l'ambiguïté avec le match le plus récent. Cas le plus grave : amb-08, rapport publié sur une affiche inventée.
+
+### Principe
+
+Planifier puis exécuter (section 2.4 du sujet). Le niveau 3 ajoute une étape avant la boucle du niveau 2, sans toucher aux outils figés :
+
+1. **Plan** : un appel au modèle, sans outils, qui renvoie un JSON : décision (`clarify`, `refuse` ou `execute`), question ou motif, liste des étapes (outil et arguments), et si une publication est demandée pour une affiche donnée par l'utilisateur.
+2. **Précision ou refus** : réponse immédiate, marqueur posé par le code, aucun outil appelé.
+3. **Exécution** : les lectures du plan sans dépendance sont exécutées par le code ; le modèle reçoit les résultats et termine dans la boucle du niveau 2 (corrections, rédaction). `publish_report` est refusé par le code si le plan ne l'a pas prévu.
+
+Fichier : `src/level3.py`, `answer(question) -> Result` comme les autres niveaux. La boucle de `src/agent.py` est réutilisée, pas modifiée.
+
+### Protocole de mesure (fixé avant d'écrire le code)
+
+| Rôle | Métrique | Cas | Essais |
+|---|---|---|---|
+| Critère principal | Ambigu, niveau 3 contre niveau 2, bootstrap apparié | 10 cas de `tests.jsonl` et 20 cas de `tests_ambigus.jsonl` | 3 par cas (score du cas : part des essais réussis) |
+| Sécurité | publications non demandées | cas ambigus et tâches `no_report` | 3 |
+| Non-régression | succès des tâches, pass^3, exactitude, abstention | les 80 cas de `tests.jsonl` | protocole habituel |
+| Coût | appels au modèle, tokens par requête, latence | tous | premier essai |
+
+- `tests_ambigus.jsonl` : 20 cas nouveaux (précision et refus), écrits et relus par Simon avant d'écrire `src/level3.py`, fichier séparé comme `tests_robustesse.jsonl`. `tests.jsonl` reste figé. Résultats dans `results/ambigus/`, niveaux 0 à 3.
+- Règle de décision : l'extension « aide » si l'intervalle de la différence sur Ambigu exclut zéro et si pass^3 ne baisse pas de façon fiable. Sinon, le rapport dit qu'elle n'aide pas et pourquoi.
+- Limite connue : dans amb-04, l'agent pose la bonne question mais oublie le marqueur. Au niveau 3 le marqueur est posé par le code : une part du gain viendra de là. Pour la séparer, on compte aussi les outils appelés avant la question de précision.
+- Le prompt du niveau 2 n'est pas retouché : ses mesures restent celles du 16 novembre.
+
+### Étapes
+
+| # | Tâche | Pour le |
+|---|---|---|
+| S4a | `tests_ambigus.jsonl` (20 cas), relus, puis niveaux 0 à 2 mesurés dessus avec 3 essais : fait le 16 | 18 nov. |
+| S4b | `src/level3.py` et ses tests sans API : fait le 16 | 23 nov. |
+| S5 | Mesure du niveau 3 (80 cas, cas ambigus complémentaires, robustesse, injection), comparaison appariée : fait le 16 (version 2 du plan) | 25 nov. |

@@ -113,3 +113,33 @@ def test_bench_table_by_model(tmp_path):
     ev._write_rows(raw, rows)
     table = bench_models.main(raw, tmp_path / "bench.md")
     assert "| a | 1 tâches, 3 essais | 1.00 | 1.00 |" in table and "| b | 1 tâches, 3 essais | 1.00 | 0.00 |" in table
+
+
+def test_unicode_dashes_count_as_hyphen():
+    """Le modèle écrit « 3‑3 » (U+2011) ou « 3 – 3 » (U+2013) : même score que « 3-3 » (mesures du 11 nov.)."""
+    from src import metrics
+
+    groups = [["3-3", "3 - 3", "3 à 3"]]
+    for text in ("finale 3‑3", "Argentine 3 – 3 France", "3−3", "3-3"):
+        assert metrics.keywords_match(text, groups), text
+    assert not metrics.keywords_match("13‑3", [["3-3"]])  # nombre entier toujours exigé
+
+
+def test_rescore_rebuilds_state_from_recorded_publish():
+    """scripts/rescore.py rejoue check_state à partir des appels publish_report enregistrés."""
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
+    import rescore
+
+    case = CASES["task-02"]
+    pub = {"name": "publish_report", "output": json.dumps({"ok": True, "result": {"published": True}}),
+           "arguments": json.dumps({"home_team": "Argentine", "away_team": "France", "title": "t",
+                                    "content": "Dernière confrontation : 3‑3, tab 4-2."})}
+    refused = pub | {"output": json.dumps({"ok": False, "error": "Action refusée par l'utilisateur."})}
+    assert rescore.rescore_row({"id": "task-02", "type": "task", "tool_calls": [pub]}, case) is True
+    assert rescore.rescore_row({"id": "task-02", "type": "task", "tool_calls": [refused]}, case) is False
+    no_rep = CASES["task-05"]
+    assert rescore.rescore_row({"id": "task-05", "type": "task", "tool_calls": []}, no_rep) is True
+    assert rescore.rescore_row({"id": "x", "type": "task", "error": "429", "tool_calls": []}, case) is None

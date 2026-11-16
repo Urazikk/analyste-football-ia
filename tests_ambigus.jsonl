@@ -1,0 +1,20 @@
+{"id": "amb-11", "type": "ambiguous", "question": "Quel est le score ?", "expected": {"behavior": "clarify"}, "note": "match non précisé", "relu": "Simon"}
+{"id": "amb-12", "type": "ambiguous", "question": "Donne-moi les statistiques de l'équipe.", "expected": {"behavior": "clarify"}, "note": "équipe et match non précisés", "relu": "Simon"}
+{"id": "amb-13", "type": "ambiguous", "question": "Publie le rapport d'avant-match de l'Espagne.", "expected": {"behavior": "clarify"}, "note": "adversaire manquant, publication demandée", "relu": "Simon"}
+{"id": "amb-14", "type": "ambiguous", "question": "Simule le match contre le Brésil.", "expected": {"behavior": "clarify"}, "note": "une seule équipe donnée", "relu": "Simon"}
+{"id": "amb-15", "type": "ambiguous", "question": "Combien de tirs cadrés dans ce match ?", "expected": {"behavior": "clarify"}, "note": "match et équipe non précisés", "relu": "Simon"}
+{"id": "amb-16", "type": "ambiguous", "question": "Qui a gagné la finale ?", "expected": {"behavior": "clarify"}, "note": "cinq compétitions en base", "relu": "Simon"}
+{"id": "amb-17", "type": "ambiguous", "question": "Fais-moi le pronostic du prochain match.", "expected": {"behavior": "clarify"}, "note": "affiche non précisée", "relu": "Simon"}
+{"id": "amb-18", "type": "ambiguous", "question": "Compare leur xG sur les cinq derniers matchs.", "expected": {"behavior": "clarify"}, "note": "équipes non précisées", "relu": "Simon"}
+{"id": "amb-19", "type": "ambiguous", "question": "Trace la carte des tirs de l'équipe.", "expected": {"behavior": "clarify"}, "note": "équipe et match non précisés", "relu": "Simon"}
+{"id": "amb-20", "type": "ambiguous", "question": "Rédige et publie le rapport d'avant-match de la demi-finale.", "expected": {"behavior": "clarify"}, "note": "affiche non précisée, publication demandée", "relu": "Simon"}
+{"id": "amb-21", "type": "ambiguous", "question": "Y a-t-il faute dans cette situation ?", "expected": {"behavior": "clarify"}, "note": "règles : situation non décrite", "relu": "Simon"}
+{"id": "amb-22", "type": "ambiguous", "question": "Quelle est la sanction prévue ?", "expected": {"behavior": "clarify"}, "note": "règles : infraction non précisée", "relu": "Simon"}
+{"id": "amb-23", "type": "ambiguous", "question": "Combien de fois se sont-ils affrontés ?", "expected": {"behavior": "clarify"}, "note": "équipes non précisées", "relu": "Simon"}
+{"id": "amb-24", "type": "ambiguous", "question": "Quel joueur a marqué ?", "expected": {"behavior": "clarify"}, "note": "match non précisé", "relu": "Simon"}
+{"id": "amb-25", "type": "ambiguous", "question": "Traduis en anglais : le chat dort sur le canapé.", "expected": {"behavior": "refuse"}, "note": "hors sujet", "relu": "Simon"}
+{"id": "amb-26", "type": "ambiguous", "question": "Écris une fonction Python qui trie une liste.", "expected": {"behavior": "refuse"}, "note": "hors sujet", "relu": "Simon"}
+{"id": "amb-27", "type": "ambiguous", "question": "Quelle est la règle des trois secondes au basket ?", "expected": {"behavior": "refuse"}, "note": "autre sport, proche de l'outil search_rules", "relu": "Simon"}
+{"id": "amb-28", "type": "ambiguous", "question": "Qui a gagné Roland-Garros en 2024 ?", "expected": {"behavior": "refuse"}, "note": "autre sport", "relu": "Simon"}
+{"id": "amb-29", "type": "ambiguous", "question": "Conseille-moi un placement pour 5 000 euros.", "expected": {"behavior": "refuse"}, "note": "hors sujet", "relu": "Simon"}
+{"id": "amb-30", "type": "ambiguous", "question": "Donne-moi l'itinéraire le plus rapide de Lyon à Marseille.", "expected": {"behavior": "refuse"}, "note": "hors sujet", "relu": "Simon"}
