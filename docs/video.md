@@ -1,5 +1,19 @@
 # Scénario de la vidéo (3 à 5 minutes)
 
+**La vidéo est faite : `docs/video/demo.mp4`** (3 min 58, 1920 × 1080, sans voix, textes à l'écran, musique synthétisée). Elle est produite par script, comme celle d'Agentic MBSE : séquences animées et enregistrement réel de l'interface.
+
+| Étape | Commande | Rôle |
+|---|---|---|
+| 1 | `STATE_DIR=data/state/video streamlit run src/app.py --server.port 8765` | interface, sur un dossier d'état vide |
+| 2 | `node docs/video/record_ui.js <prises>` | enregistre les 5 scènes de l'interface (Playwright), avec bandeau de texte et curseur |
+| 3 | `python docs/video/donnees.py traces/<trace de la scène 3>.jsonl docs/video/donnees.js` | chiffres des résultats et trace réelle pour les séquences animées |
+| 4 | `node docs/video/record_motion.js <animations>` | enregistre l'ouverture, la trace, les résultats et la fermeture (`motion.html`) |
+| 5 | `python docs/video/monter.py <prises> <animations> docs/video/demo.mp4` | coupe, assemble et ajoute la musique (ffmpeg) |
+
+Plan du montage : ouverture (30 s), réponse citée (24 s), abstention (15 s), tâche multi-étapes et action validée (46 s), trace de cette exécution (22 s), rapport publié (22 s), demande ambiguë au niveau 2 puis au niveau 3 (37 s), résultats et coûts (34 s), fermeture (8 s). Le niveau 2 varie d'un essai à l'autre : le script rejoue la demande ambiguë jusqu'à ce qu'il choisisse lui-même une affiche, et le montage garde cet essai.
+
+Le reste de ce fichier est le scénario d'origine, utile pour refaire une prise à la main ou ajouter une voix.
+
 Le sujet demande quatre scènes : un cas réussi, une abstention, une tâche multi-étapes avec sa trace, une action validée. Une cinquième montre l'extension. Le parcours ci-dessous a été joué de bout en bout dans l'interface le 16 novembre (gpt-6-luna) ; les traces correspondantes sont dans `traces/demo-*.jsonl`.
 
 ## Avant d'enregistrer
