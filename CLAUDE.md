@@ -93,7 +93,7 @@ traces/
 - [x] Mesures : robustesse (40 reformulations) et injection (10 cas) refaites avec gpt-6-luna (16 novembre)
 - [x] Extension choisie le 16 novembre : planification (docs/plan.md section 6)
 - [x] Niveau 3 codé (`src/level3.py`), mesuré sur les 80 cas, 30 cas ambigus, 10 cas absents nouveaux, robustesse et injection (16 novembre) : Ambigu 0,59 → 0,98, sans régression fiable
-- [ ] Simon : ses sections du rapport (27 nov.)
+- [x] Simon : sections du rapport (`docs/rapport/simon.md`), assemblage par `scripts/build_report.py` (16 novembre) ; à resserrer avec celles de Gautier pour tenir en 4 pages
 - [ ] Gautier : second annotateur, benchmark de modèles, 5 échecs, traces de démo, vidéo, ses sections du rapport (27 nov.)
 - [ ] 28 au 30 novembre : assemblage du rapport, vérification depuis un clone neuf, rendu
 

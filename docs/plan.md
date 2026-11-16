@@ -185,7 +185,7 @@ Les niveaux 0 à 2 sont mesurés sur les 80 cas avec `gpt-6-luna`, robustesse et
 | S4 | Niveau 3 dans `src/level3.py`, tests sans API | 23 nov. |
 | S5 | Mesure du niveau 3 sur les 80 cas avec pass^3, comparaison appariée contre le niveau 2 | 25 nov. |
 | S6 | Niveau 3 dans `eval.py` et dans l'interface | 25 nov. |
-| S7 | Rapport : cas d'usage, architecture, RAG, évaluation, tableau, extension (`docs/rapport/simon.md`) ; `scripts/build_report.py` assemble les deux fichiers | 27 nov. |
+| S7 | Rapport : cas d'usage, architecture, RAG, évaluation, tableau, extension (`docs/rapport/simon.md`) ; `scripts/build_report.py` assemble les deux fichiers : fait le 16, 3 pages pour cette partie seule, à resserrer à l'assemblage | 27 nov. |
 
 ### Piste Gautier : benchmark, échecs, vidéo
 

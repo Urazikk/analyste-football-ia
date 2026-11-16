@@ -13,6 +13,7 @@ th, td { border-bottom: 1px solid var(--line); padding: 2pt 4pt; text-align: lef
 th { background: #eef2f7; font-weight: bold; }
 td.num, th.num { text-align: right; white-space: nowrap; }
 caption { caption-side: top; text-align: left; font-weight: bold; font-size: 8.4pt; padding-bottom: 2pt; }
-img { display: block; width: 100%; max-width: 100%; margin: 3pt 0; }
+img { display: block; width: 76%; max-width: 100%; margin: 2pt auto; }
+figcaption { display: none; }
 code { font-family: "DejaVu Sans Mono", monospace; font-size: 8pt; }
 .note { color: var(--muted); font-size: 7.8pt; }
