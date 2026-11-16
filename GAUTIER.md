@@ -16,7 +16,7 @@ Les sections 1 à 8 plus bas sont faites et restent pour mémoire. Rien de ce qu
 - Le tableau des niveaux utilise maintenant `gpt-6-luna` (clé OpenAI de l'encadrant, raisonnement désactivé), à cause du quota Groq. Niveaux 0 à 2 mesurés sur les 80 cas, pass^3 compris, plus la robustesse et l'injection. Détail dans `docs/decisions.md`, lignes du 16 novembre.
 - Niveau 2 avec `gpt-6-luna` : succès des tâches 1,00, pass^3 1,00, exactitude 0,95. Défauts mesurés : cas ambigus 0,60, MRR 0,54. Les chiffres non soutenus sont à 0,00 après correction de la métrique (elle comptait à tort les probabilités écrites en pourcentage) ; avec `gpt-oss-120b`, 3 rapports sur 12 restent signalés (task-02, task-03).
 - Les mesures `openai/gpt-oss-120b` restent dans `results/raw_level*.jsonl` (étiquetées par modèle) et servent au benchmark. Au niveau 2, 20 essais de tâches sur 60 sont faits (tâches 1 à 7), le reste est en erreur de quota.
-- Tu n'as pas besoin de la clé de l'encadrant : ta clé Groq et Ollama suffisent. `.env.example` garde Groq par défaut.
+- Tu n'as pas besoin de la clé de l'encadrant : ta clé Groq et Ollama suffisent. Depuis le 16 novembre `.env.example` met `gpt-6-luna` par défaut : pour ton benchmark, garde dans ton `.env` les lignes Groq (`LLM_BASE_URL=https://api.groq.com/openai/v1`, `LLM_MODEL=openai/gpt-oss-120b`, `LLM_REASONING_EFFORT=` vide), ou passe `--model` et `--base-url` à `eval.py`.
 
 ### Tes tâches
 

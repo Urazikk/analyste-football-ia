@@ -18,7 +18,7 @@ RESULTS_DIR = ROOT / "results"
 
 LLM_BASE_URL = os.getenv("LLM_BASE_URL") or None
 LLM_API_KEY = os.getenv("LLM_API_KEY", "")
-LLM_MODEL = os.getenv("LLM_MODEL", "")
+LLM_MODEL = os.getenv("LLM_MODEL", "") or "gpt-6-luna"  # modèle du tableau des niveaux
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "intfloat/multilingual-e5-small")
 # Juge de fidélité : autre famille que le modèle évalué, pour limiter le biais d'auto-évaluation
 JUDGE_MODEL = os.getenv("JUDGE_MODEL", "qwen/qwen3.8-27b")
