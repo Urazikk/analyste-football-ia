@@ -32,3 +32,8 @@ def test_absent_terms_are_not_in_the_corpus():
     for c in load("tests_absents.jsonl"):
         found = [t for t in c["absent_terms"] if t.lower() in corpus]
         assert not found, f"{c['id']} : {found} présent dans le corpus"
+
+
+def test_extra_absent_cases_are_reviewed():
+    for c in load("tests_absents.jsonl"):
+        assert c.get("relu", "").startswith("Simon"), f"{c['id']} non relu"
