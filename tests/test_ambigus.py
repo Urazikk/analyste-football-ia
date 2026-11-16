@@ -19,3 +19,4 @@ def test_extra_ambiguous_cases_are_new_and_well_formed():
     assert not {c["question"] for c in extra} & {c["question"] for c in main}
     for c in extra:
         assert c["type"] == "ambiguous" and c["expected"]["behavior"] in ("clarify", "refuse")
+        assert c.get("relu", "").startswith("Simon"), f"{c['id']} non relu"
