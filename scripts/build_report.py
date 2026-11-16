@@ -1,7 +1,7 @@
 """Rapport PDF : python scripts/build_report.py  ->  docs/rapport/rapport.pdf
 
-Remplace les balises {{...}} de docs/rapport/rapport.md par des tableaux recalculés depuis results/
-(aucun appel au LLM), convertit en HTML avec pandoc, puis imprime en PDF avec Chrome ou Chromium
+Assemble docs/rapport/rapport.md (en-tête), simon.md et gautier.md, remplace les balises {{...}} par des
+tableaux recalculés depuis results/ (aucun appel au LLM), convertit en HTML avec pandoc, puis imprime en PDF avec Chrome ou Chromium
 (variable CHROME pour en donner le chemin). Vérifie la limite de 4 pages.
 """
 from __future__ import annotations
@@ -22,18 +22,22 @@ from src import config  # noqa: E402
 from src.config import RESULTS_DIR  # noqa: E402
 
 DOC = ROOT / "docs" / "rapport"
-LEVEL_NAMES = {0: "0 · LLM seul", 1: "1 · RAG", 2: "2 · Agent", 3: "3 · Extension"}
+LEVEL_NAMES = {0: "0 · LLM seul", 1: "1 · RAG", 2: "2 · Agent", 3: "3 · Agent avec plan"}
 QUALITY = ["Exactitude", "Citation", "Fidélité", "Abstention", "Ambigu", "Succès tâches", "pass^3"]
-COSTS = ["Recall@5", "MRR", "Tokens/req", "Coût/req ($)", "Latence (s)", "Erreurs"]
+COSTS = ["Recall@5", "MRR", "Tokens/req", "Coût/req ($)", "Latence (s)"]
+PARTS = ["simon.md", "gautier.md"]
 
-CHOIX = """| Choix | Options comparées | Mesure | Résultat |
-|---|---|---|---|
-| LLM : gpt-oss-120b (Groq, poids ouverts, gratuit) | qwen3.8-27b ; Mistral Small sans accès API gratuit | niveaux 0 et 1, 25 cas | niveau 0 : exactitude 0,75 contre 0,10 (Qwen s'abstient trop) ; citation 1,00 contre 0,90 |
-| Embeddings : multilingual-e5-small | bge-m3 | Recall@5 et MRR, 40 cas, bootstrap apparié | pas d'écart fiable (bge-m3 +0,05 [0 ; +0,125]) ; e5 quatre fois plus rapide |
-| Recherche dense seule | BM25, hybride RRF | idem, plus 40 reformulations | hybride sans gain fiable, et 0,70 de Recall@5 sur les questions avec fautes |
-| Extraits de 600 caractères | 1200, 2000 | Recall@5 et MRR | MRR 0,76 contre 0,67 et 0,59 |
-| Pas de seuil d'abstention sur le score | seuil sur le cosinus | scores des cas doc et absents | recouvrement : un seuil rejetterait de bons cas |
-| Juge de fidélité : qwen3.8-27b (autre famille) | | 30 annotations humaines dont 10 erreurs injectées | accord 30/30, kappa 1,00 |"""
+CHOIX = """| Choix | Options comparées | Mesure et résultat |
+|---|---|---|
+| LLM : gpt-6-luna, raisonnement désactivé | gpt-oss-120b (Groq, poids ouverts) | quota gratuit Groq : 20 essais de tâches sur 60 en un jour ; gpt-6-luna : 360 exécutions d'une traite. gpt-oss-120b reste la référence ouverte |
+| Embeddings e5-small, recherche dense, extraits de 600 caractères | bge-m3 ; BM25 et hybride ; 1200 et 2000 caractères | Recall@5 et MRR sur 40 cas et 40 reformulations, bootstrap apparié : aucun écart fiable pour bge-m3 ni l'hybride, plus lents ou fragiles aux fautes |
+| Abstention par le modèle, sans seuil sur le score | seuil sur le cosinus | les scores des cas présents et absents se recouvrent |
+| Juge de fidélité qwen3.8-27b (autre famille) | | 30 annotations, deux annotateurs : accord 30/30, kappa 1,00 |
+| Extension : planification | vérificateur multi-agents, RAG avancé, routage | cas ambigus : seul critère où l'agent fait moins bien que le LLM seul ; chiffres non soutenus à 0,00 une fois la métrique corrigée |"""
+
+# Lignes de la comparaison appariée gardées dans le rapport (le détail est dans results/comparaison.md)
+KEEP = [("0 → 1", "Abstention"), ("0 → 1", "Exactitude"), ("1 → 2", "Succès tâches"), ("1 → 2", "Exactitude"),
+        ("2 → 3", "Ambigu"), ("2 → 3", "Abstention"), ("2 → 3", "Succès tâches")]
 
 
 def _rows(path: Path) -> list[dict]:
@@ -68,9 +72,7 @@ def comparaison() -> str:
 
     levels = [lv for lv in range(4) if (RESULTS_DIR / f"raw_level{lv}.jsonl").exists()]
     lines = cl.compare(levels).splitlines()
-    keep = [l for l in lines[2:] if any(f"| {a} → {a + 1} |" in l for a in range(3))
-            and any(f"| {m} |" in l for m in ("Exactitude", "Citation", "Abstention", "Ambigu", "Succès tâches"))
-            and not ("| 0 → 1 |" in l and "| Citation |" in l)]  # le niveau 0 n'a rien à citer
+    keep = [l for l in lines[2:] if any(f"| {a} | {m} |" in l for a, m in KEEP)]
     if not keep:
         return ""
     return ("**Comparaison appariée des niveaux successifs** (mêmes cas ; gain fiable si l'intervalle est au-dessus de 0)\n\n"
@@ -87,30 +89,74 @@ def protocole() -> str:
 
 
 def robustesse() -> str:
-    parts = []
-    for name, title in (("recherche.md", "Recherche seule sur 40 reformulations relues"),
-                        ("robustesse.md", "Réponses sur les reformulations")):
-        p = RESULTS_DIR / "robustesse" / name
-        if p.exists():
-            body = "\n".join(l for l in p.read_text(encoding="utf-8").splitlines() if l.startswith("|"))
-            parts.append(f"**{title}**\n\n{body}")
-    return "\n\n".join(parts) or "_Robustesse : mesure à venir._"
+    """Exactitude sur les reformulations, une ligne par niveau (origine, familier, mise en situation)."""
+    p = RESULTS_DIR / "robustesse" / "robustesse.md"
+    if not p.exists():
+        return "_Robustesse : mesure à venir._"
+    by: dict[str, dict[str, list[str]]] = {}
+    for l in p.read_text(encoding="utf-8").splitlines():
+        c = [x.strip() for x in l.split("|")]
+        if len(c) > 6 and c[1].isdigit():
+            by.setdefault(c[1], {})[c[2]] = c[4:7]
+    lines = ["**Exactitude sur 40 reformulations relues de 20 questions** (stabilité : même résultat que la question d'origine)",
+             "", "| Niveau | Question d'origine | Familier, avec fautes | Mise en situation | Stabilité |", "|---|---|---|---|---|"]
+    for lv, d in by.items():
+        fam, sit = d.get("familier", ["—"] * 3), d.get("situation", ["—"] * 3)
+        lines.append(f"| {LEVEL_NAMES[int(lv)]} | {fam[1]} | {fam[0]} | {sit[0]} | {fam[2]} et {sit[2]} |")
+    return "\n".join(lines)
 
 
 def injection() -> str:
     sums = summaries(RESULTS_DIR / "injection")
     if not sums:
-        return "_Injection de consignes (5 documents piégés) : mesure à venir._"
-    return table(sums, ["Injection obéie"], "Injection de consignes : part des cas où le système obéit (plus bas est mieux)")
+        return "Injection de consignes : mesure à venir."
+    rates = ", ".join(f"niveau {lv} : {_fmt(s.get('Injection obéie'))}" for lv, s in sums.items())
+    return (f"Injection de consignes (10 cas : 5 documents piégés, 5 sorties d'outils piégées), part des cas où le "
+            f"système obéit : {rates}.")
+
+
+def ambigus() -> str:
+    """Tableau des cas ambigus à 3 essais (niveaux 2 et 3) et écart apparié, depuis results/ambigus/ambigus.md."""
+    p = RESULTS_DIR / "ambigus" / "ambigus.md"
+    if not p.exists():
+        return "_Cas ambigus à 3 essais : mesure à venir._"
+    lines = [l for l in p.read_text(encoding="utf-8").splitlines() if l.startswith("|")]
+    head = [l for l in lines if l.startswith("| Niveau |") or l.startswith("|---|---|---|---|---|---|---|---|")][:2]
+    levels = [l for l in lines if l.split("|")[1].strip() in ("0", "2", "3") and "→" not in l]
+    diff = next((l for l in lines if l.startswith("| 2 → 3 |")), "")
+    cells = [c.strip() for c in diff.split("|")]
+    note = f"\n\nNiveau 3 moins niveau 2, apparié sur {cells[2]} cas : {cells[5]}." if diff else ""
+    return "\n".join(head + levels) + note
+
+
+def absents() -> str:
+    """Abstention sur les cas absents complémentaires, niveaux 2 et 3."""
+    out = []
+    for lv in (2, 3):
+        rows = _rows(RESULTS_DIR / "absents" / f"raw_level{lv}.jsonl")
+        if rows:
+            out.append(f"{sum(bool(r['correct']) for r in rows)} sur {len(rows)} au niveau {lv}")
+    return " et ".join(out) or "mesure à venir"
 
 
 def couts(sums: dict[int, dict]) -> str:
-    rows = [r for lv in range(4) for r in ev._read_rows(RESULTS_DIR / f"raw_level{lv}.jsonl")]
+    rows = [r for lv in range(4) for r in _rows(RESULTS_DIR / f"raw_level{lv}.jsonl")]
     tok = sum(r["tokens_in"] + r["tokens_out"] for r in rows)
     usd = sum(config.cost_usd(r["tokens_in"], r["tokens_out"]) for r in rows)
     per = ", ".join(f"niveau {lv} : {_fmt(s['Coût/req ($)'])} $" for lv, s in sums.items())
-    return (f"Coût par requête au tarif payant équivalent ({per}). Toutes les mesures stockées : {tok:,} tokens, "
-            f"soit {usd:.2f} $ au tarif payant ; coût réel nul (offre gratuite).").replace(",", " ")
+    return (f"Coût par requête avec {config.LLM_MODEL} ({per}). Mesures du tableau : {tok:,} tokens, "
+            f"soit {usd:.2f} $.").replace(",", " ")
+
+
+def assemble() -> str:
+    """En-tête de rapport.md, puis chaque partie à partir de son premier titre « ## »."""
+    text = (DOC / "rapport.md").read_text(encoding="utf-8")
+    for name in PARTS:
+        p = DOC / name
+        if p.exists():
+            body = p.read_text(encoding="utf-8")
+            text += "\n" + body[max(body.find("\n## "), 0):] + "\n"
+    return text
 
 
 def chrome() -> str:
@@ -127,9 +173,10 @@ def build() -> Path:
     fill = {"choix": CHOIX, "protocole": protocole(),
             "table_qualite": table(sums, QUALITY, "Qualité par niveau") if sums else "_Mesures à venir._",
             "table_couts": table(sums, COSTS, "Recherche, coût et latence par niveau") if sums else "",
+            "table_recherche": table(sums, COSTS, "Recherche, coût et latence par niveau") if sums else "",
             "comparaison": comparaison(), "robustesse": robustesse(), "injection": injection(),
-            "couts": couts(sums) if sums else ""}
-    text = (DOC / "rapport.md").read_text(encoding="utf-8")
+            "ambigus": ambigus(), "absents": absents(), "couts": couts(sums) if sums else ""}
+    text = assemble()
     for k, v in fill.items():
         text = text.replace("{{" + k + "}}", re.sub(r"(\d)\.(\d)", r"\1,\2", v))  # décimales à la française
     md = DOC / "_build.md"

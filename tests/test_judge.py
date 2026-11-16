@@ -52,6 +52,7 @@ def test_second_annotator_does_not_touch_simon(monkeypatch, tmp_path):
                          for i in range(4)), encoding="utf-8")
     monkeypatch.setattr(cj, "ANNOT", f)
     monkeypatch.setattr(cj, "RESULTS_DIR", tmp_path)
+    monkeypatch.setattr(cj.judge, "passages_for", lambda sources: {})  # pas d'index ni de téléchargement
     answers = iter(["o", "", "n", "", "o", "", "n", ""])
     monkeypatch.setattr("builtins.input", lambda *_: next(answers))
     cj.annotate("gautier")

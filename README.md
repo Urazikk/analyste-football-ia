@@ -16,7 +16,7 @@ Un assistant qui répond aux questions sur le football et prépare des rapports 
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env   # puis mettre la clé Groq gratuite (console.groq.com)
+cp .env.example .env   # clé OpenAI (gpt-6-luna) dans LLM_API_KEY, clé Groq gratuite (juge) dans JUDGE_API_KEY
 ```
 
 Sans GPU, installer d'abord torch en version processeur évite plusieurs Go de bibliothèques CUDA :
