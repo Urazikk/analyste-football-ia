@@ -180,7 +180,7 @@ Les niveaux 0 à 2 sont mesurés sur les 80 cas avec `gpt-6-luna`, robustesse et
 | # | Tâche | Pour le |
 |---|---|---|
 | S1 | Tarif de `gpt-6-luna`, colonne Coût régénérée, 6 verdicts de fidélité manquants (avant la fusion de la PR 21) | 17 nov. |
-| S2 | Vérifier à la main « chiffres non soutenus » (0,80) sur 3 rapports | 18 nov. |
+| S2 | Vérifier à la main « chiffres non soutenus » (0,80) sur 3 rapports : fait le 16, artefact de mesure, 0,00 après correction | 18 nov. |
 | S3 | Choix de l'extension d'après S2 et les mesures existantes, consigné dans `docs/decisions.md` | 19 nov. |
 | S4 | Niveau 3 dans `src/level3.py`, tests sans API | 23 nov. |
 | S5 | Mesure du niveau 3 sur les 80 cas avec pass^3, comparaison appariée contre le niveau 2 | 25 nov. |

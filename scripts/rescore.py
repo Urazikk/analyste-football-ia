@@ -1,9 +1,10 @@
-"""Recalcule l'exactitude des résultats bruts avec les métriques actuelles, sans appel au LLM.
+"""Recalcule l'exactitude et les chiffres non soutenus des résultats bruts avec les métriques actuelles, sans appel au LLM.
 
 Sert quand une métrique est corrigée après coup (ex. tirets Unicode dans « 3‑3 », docs/decisions.md) :
 - doc  : mots clés sur la réponse enregistrée, et pas d'abstention ;
 - task : état final reconstruit à partir des appels réussis à publish_report enregistrés dans tool_calls
          (contenu, équipes), vérifié par metrics.check_state comme pendant l'évaluation.
+- task : chiffres non soutenus du contenu publié, contre les sorties d'outils enregistrées.
 Les autres types et champs ne changent pas.
 
 Usage : python scripts/rescore.py [--check] [results/raw_level2.jsonl ...]
@@ -60,6 +61,15 @@ def task_correct(row: dict, case: dict) -> bool:
                 os.environ["STATE_DIR"] = old
 
 
+def task_unsupported(row: dict) -> list[float] | None:
+    """Chiffres non soutenus des rapports publiés (None : rien publié), comme dans eval.run_case."""
+    reports = published_reports(row)
+    if not reports:
+        return None
+    outputs = [c.get("output") or "" for c in row.get("tool_calls", [])]
+    return metrics.unsupported_numbers(" ".join(a.get("content", "") for a in reports), outputs)
+
+
 def rescore_row(row: dict, case: dict) -> bool | None:
     """Nouvelle valeur de correct, ou None si la ligne ne se recalcule pas (erreur, autre type)."""
     if row.get("error"):
@@ -88,6 +98,12 @@ def main() -> None:
             if new is not None and new != r.get("correct"):
                 changed.append((r.get("model"), r["id"], r.get("trial", 0), r.get("correct"), new))
                 r["correct"] = new
+            if case and r["type"] == "task" and not r.get("error") and "unsupported_numbers" in r:
+                uns = task_unsupported(r)
+                if uns != r["unsupported_numbers"]:
+                    changed.append((r.get("model"), r["id"], r.get("trial", 0), "chiffres non soutenus",
+                                    r["unsupported_numbers"], uns))
+                    r["unsupported_numbers"] = uns
         print(f"{path.name} : {len(changed)} ligne(s) changée(s) sur {len(rows)}")
         for c in changed:
             print("  ", *c)

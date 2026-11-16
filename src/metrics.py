@@ -94,9 +94,12 @@ def numbers_in(text: str) -> list[float]:
 def unsupported_numbers(report: str, tool_outputs: list[str]) -> list[float]:
     """Chiffres du rapport absents des sorties d'outils du run, arrondis tolérés (58,1 cité 58).
 
+    Une probabilité d'un outil (0,186) citée en pourcentage (18,6 %) est soutenue.
     Diagnostic de fidélité du niveau 2 : ne change pas le succès de la tâche.
     """
-    seen = {round(x, d) for out in tool_outputs for x in numbers_in(out) for d in (0, 1, 2)}
+    nums = [x for out in tool_outputs for x in numbers_in(out)]
+    seen = {round(x, d) for x in nums for d in (0, 1, 2)}
+    seen |= {round(100 * x, d) for x in nums if 0 < x < 1 for d in (0, 1, 2)}
     return sorted({x for x in numbers_in(report) if x not in seen})
 
 

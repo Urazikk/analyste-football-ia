@@ -51,3 +51,9 @@ def test_errors_excluded_from_quality_metrics():
             {"id": "t1", "type": "task", "trial": 2, "correct": True}]
     lists = ev.metric_lists(1, rows)
     assert lists["Exactitude"] == [True] and lists["pass^3"] == []
+
+
+def test_unsupported_numbers_accepts_probability_as_percentage():
+    outputs = ['{"probabilities": {"home_win": 0.186, "draw": 0.234}, "shots": 9}']
+    assert metrics.unsupported_numbers("Victoire 18,6 %, nul 23 %, 9 tirs.", outputs) == []
+    assert metrics.unsupported_numbers("Victoire 31 %, 112 kilomètres.", outputs) == [31.0, 112.0]

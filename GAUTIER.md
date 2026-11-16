@@ -14,7 +14,7 @@ Les sections 1 à 8 plus bas sont faites et restent pour mémoire. Rien de ce qu
 ### État des mesures au 16 novembre
 
 - Le tableau des niveaux utilise maintenant `gpt-6-luna` (clé OpenAI de l'encadrant, raisonnement désactivé), à cause du quota Groq. Niveaux 0 à 2 mesurés sur les 80 cas, pass^3 compris, plus la robustesse et l'injection. Détail dans `docs/decisions.md`, lignes du 16 novembre.
-- Niveau 2 avec `gpt-6-luna` : succès des tâches 1,00, pass^3 1,00, exactitude 0,95. Défauts mesurés : chiffres non soutenus dans 0,80 des rapports publiés, cas ambigus 0,60, MRR 0,54.
+- Niveau 2 avec `gpt-6-luna` : succès des tâches 1,00, pass^3 1,00, exactitude 0,95. Défauts mesurés : cas ambigus 0,60, MRR 0,54. Les chiffres non soutenus sont à 0,00 après correction de la métrique (elle comptait à tort les probabilités écrites en pourcentage) ; avec `gpt-oss-120b`, 3 rapports sur 12 restent signalés (task-02, task-03).
 - Les mesures `openai/gpt-oss-120b` restent dans `results/raw_level*.jsonl` (étiquetées par modèle) et servent au benchmark. Au niveau 2, 20 essais de tâches sur 60 sont faits (tâches 1 à 7), le reste est en erreur de quota.
 - Tu n'as pas besoin de la clé de l'encadrant : ta clé Groq et Ollama suffisent. `.env.example` garde Groq par défaut.
 
@@ -24,7 +24,7 @@ Les sections 1 à 8 plus bas sont faites et restent pour mémoire. Rien de ce qu
 |---|---|---|---|
 | G1 | Annotation à l'aveugle des 30 réponses du juge, puis accord entre humains | `python scripts/calibrate_judge.py --annotate --annotateur gautier` puis `--accord` | 18 nov. |
 | G2 | Benchmark au niveau 2 sur les tâches : finir `openai/gpt-oss-120b` (40 essais restants, environ 2 jours de quota), puis un modèle Ollama en local | `python eval.py --levels 2 --types task --trials 3 --resume`, puis `--model <modèle> --base-url http://localhost:11434/v1`, puis `python scripts/bench_models.py` | 22 nov. |
-| G3 | Analyse de 5 échecs avec leur trace, à partir des résultats déjà dans le dépôt : chiffres non soutenus, cas ambigus ratés au niveau 2, affiche inversée par gpt-oss-120b (task-01, task-03), échec de task-04, abstentions manquées | `docs/echecs.md` | 24 nov. |
+| G3 | Analyse de 5 échecs avec leur trace, à partir des résultats déjà dans le dépôt : chiffres non soutenus de gpt-oss-120b (task-02, task-03), cas ambigus ratés au niveau 2, affiche inversée par gpt-oss-120b (task-01, task-03), échec de task-04, abstentions manquées | `docs/echecs.md` | 24 nov. |
 | G4 | Traces de démo (une par scène de la vidéo) | `traces/`, ajoutées avec `git add -f` | 25 nov. |
 | G5 | Vidéo de 3 à 5 minutes : cas réussi, abstention, tâche multi-étapes avec sa trace, action validée. Les quatre scènes se tournent sur les niveaux 0 à 2 | | 27 nov. |
 | G6 | Rapport : agent et outils, benchmark de modèles, coûts, les 5 échecs, limites | `docs/rapport/gautier.md` | 27 nov. |
