@@ -88,7 +88,8 @@ traces/
 - [x] Semaine 2 : outils StatsBomb, règles métier de `publish_report`, rapport structuré, export PDF, pronostic (outils du niveau 2 figés depuis le 10 novembre)
 - [x] Semaine 2 : jeu de test de 80 cas (40 doc, 10 absents, 20 tâches, 10 ambigus), 40 reformulations, 10 cas d'injection
 - [x] Mesures : niveaux 0 et 1 sur les 80 cas ; niveau 2 sur les cas ambigus ; injection aux niveaux 1 et 2
-- [ ] Mesures : niveau 2 sur les cas doc et absents (en cours), tâches au niveau 2 avec pass^3 (chemin critique), robustesse avec le LLM
+- [x] Mesures : niveaux 0 à 2 complets sur les 80 cas avec gpt-6-luna, pass^3 compris (16 novembre)
+- [ ] Mesures : robustesse et injection à refaire avec gpt-6-luna
 - [ ] Gautier : second annotateur du juge, benchmark de modèles, liste des échecs du niveau 2
 - [ ] 22 novembre : choix de l'extension
 - [ ] Semaine 4 : extension et sa mesure, analyse de 5 échecs, rapport, vidéo, traces de démo
@@ -101,7 +102,7 @@ traces/
 
 ## Décisions à fixer (à compléter)
 - Compétitions StatsBomb : Euro 2024 (55, 282), Copa América 2024 (223, 282), CdM 2022 (43, 106). Pas de compétition future dans l'open data : le rapport d'avant-match porte sur une affiche donnée par l'utilisateur, à partir des derniers matchs disponibles des deux sélections.
-- Modèle LLM : openai/gpt-oss-120b via Groq (poids ouverts, offre gratuite ; la clé OpenAI fournie par l'encadrant, limitée à gpt-6-luna, sert au benchmark et de secours si le quota Groq bloque), choisi contre qwen3.8-27b sur les niveaux 0 et 1 (results/choix-llm/). Mistral Small abandonné (offre Free sans API). Benchmark au niveau 2 (10 tâches) contre Qwen et un modèle Ollama, consigné dans docs/decisions.md. Le tableau des niveaux utilise un seul modèle.
+- Modèle LLM : gpt-6-luna via OpenAI depuis le 16 novembre (clé de l'encadrant, raisonnement désactivé), à cause du quota Groq ; les mesures openai/gpt-oss-120b via Groq (poids ouverts, offre gratuite) restent comme benchmark, choisi contre qwen3.8-27b sur les niveaux 0 et 1 (results/choix-llm/). Mistral Small abandonné (offre Free sans API). Benchmark au niveau 2 (10 tâches) contre Qwen et un modèle Ollama, consigné dans docs/decisions.md. Le tableau des niveaux utilise un seul modèle.
 - Corpus RAG : lois du jeu IFAB en français, téléchargées par un script, non commitées (licence) ; Wikipédia en complément.
 - Modèle d'embeddings : multilingual-e5-small, recherche dense seule, morceaux de 600 caractères (sur 40 cas : Recall@5 0,89, MRR 0,76 ; bge-m3 et l'hybride sans gain fiable, l'hybride fragile aux fautes). Pas de seuil d'abstention sur le score. Détail dans docs/decisions.md et results/retrieval.md.
 - Extension niveau 3 : à choisir d'après un défaut mesuré au niveau 2.
