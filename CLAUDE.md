@@ -51,7 +51,7 @@ Barème (sur 20) : système fonctionnel niveaux 0 à 2 et interface, y compris l
 ```
 README.md, requirements.txt, .env.example, .gitignore
 eval.py            # python eval.py : tous les niveaux, results/table.md
-tests.jsonl        # jeu de test (5 exemples, 40 cas à écrire)
+tests.jsonl        # jeu de test (80 cas)
 docs/
   sujet.pdf
   protocole.md     # protocole de test figé
@@ -64,7 +64,7 @@ src/
   llm.py           # client compatible OpenAI + niveau 0
   rag.py           # niveau 1 : découpage, recherche dense, réponse citée, abstention
   agent.py         # niveau 2, boucle écrite à la main (faite et testée)
-  tools.py         # outils + schémas JSON + effet + règles métier (lecture à faire)
+  tools.py         # outils + schémas JSON + effet + règles métier (figés)
   metrics.py       # Recall@k, MRR, mots clés, état final, pass^k
   app.py           # interface Streamlit avec validation des actions
 tests/             # pytest avec faux LLM, sans API
@@ -83,16 +83,15 @@ traces/
 - En évaluation, chaque essai écrit dans un `STATE_DIR` temporaire ; l'état final est vérifié par `metrics.check_state`.
 
 ## Avancement
-- [x] Semaine 1 : squelette, protocole, boucle de l'agent testée, niveau 0 codé
-- [x] Semaine 1 : décisions techniques
-- [x] Semaine 1 : script du corpus et découpage (testés hors ligne)
-- [x] Semaine 1 : corpus construit (43 documents), 20 cas doc et 5 cas absents vérifiés
-- [ ] Semaine 1 : 10 tâches et 5 cas ambigus (Gautier), premières mesures du niveau 0 (clé Mistral)
-- [x] Semaine 2 : recherche du RAG mesurée (e5-small, dense, 600 caractères) ; réponse citée et abstention codées et testées
-- [x] Semaine 2 : niveau 1 mesuré sur 25 cas (gpt-oss-120b via Groq) ; outil search_rules pour l'agent ; juge de fidélité calibré (30 annotations, kappa 1,00)
-- [ ] Semaine 2 : niveau 2 complet (quota Groq de 200 000 tokens par jour : `python eval.py --resume`)
-- [ ] Semaine 3 : outils StatsBomb, pass^3
-- [ ] Semaine 4 : extension, rapport, vidéo
+- [x] Semaine 1 : squelette, protocole, boucle de l'agent testée, corpus (43 documents), décisions techniques
+- [x] Semaine 2 : RAG mesuré (e5-small, dense, 600 caractères), réponse citée, abstention, juge de fidélité calibré (30 annotations, kappa 1,00)
+- [x] Semaine 2 : outils StatsBomb, règles métier de `publish_report`, rapport structuré, export PDF, pronostic (outils du niveau 2 figés depuis le 10 novembre)
+- [x] Semaine 2 : jeu de test de 80 cas (40 doc, 10 absents, 20 tâches, 10 ambigus), 40 reformulations, 10 cas d'injection
+- [x] Mesures : niveaux 0 et 1 sur les 80 cas ; niveau 2 sur les cas ambigus ; injection aux niveaux 1 et 2
+- [ ] Mesures : niveau 2 sur les cas doc et absents (en cours), tâches au niveau 2 avec pass^3 (chemin critique), robustesse avec le LLM
+- [ ] Gautier : second annotateur du juge, benchmark de modèles, liste des échecs du niveau 2
+- [ ] 22 novembre : choix de l'extension
+- [ ] Semaine 4 : extension et sa mesure, analyse de 5 échecs, rapport, vidéo, traces de démo
 
 ## Planning
 - Semaine 1 (2 au 8 nov.) : thème, corpus, jeu de test, niveau 0, protocole de test.
@@ -102,7 +101,7 @@ traces/
 
 ## Décisions à fixer (à compléter)
 - Compétitions StatsBomb : Euro 2024 (55, 282), Copa América 2024 (223, 282), CdM 2022 (43, 106). Pas de compétition future dans l'open data : le rapport d'avant-match porte sur une affiche donnée par l'utilisateur, à partir des derniers matchs disponibles des deux sélections.
-- Modèle LLM : openai/gpt-oss-120b via Groq (poids ouverts, offre gratuite), choisi contre qwen3.8-27b sur les niveaux 0 et 1 (results/choix-llm/). Mistral Small abandonné (offre Free sans API). Benchmark au niveau 2 (10 tâches) contre Qwen et un modèle Ollama, consigné dans docs/decisions.md. Le tableau des niveaux utilise un seul modèle.
+- Modèle LLM : openai/gpt-oss-120b via Groq (poids ouverts, offre gratuite ; la clé OpenAI fournie par l'encadrant, limitée à gpt-6-luna, sert au benchmark et de secours si le quota Groq bloque), choisi contre qwen3.8-27b sur les niveaux 0 et 1 (results/choix-llm/). Mistral Small abandonné (offre Free sans API). Benchmark au niveau 2 (10 tâches) contre Qwen et un modèle Ollama, consigné dans docs/decisions.md. Le tableau des niveaux utilise un seul modèle.
 - Corpus RAG : lois du jeu IFAB en français, téléchargées par un script, non commitées (licence) ; Wikipédia en complément.
 - Modèle d'embeddings : multilingual-e5-small, recherche dense seule, morceaux de 600 caractères (sur 40 cas : Recall@5 0,89, MRR 0,76 ; bge-m3 et l'hybride sans gain fiable, l'hybride fragile aux fautes). Pas de seuil d'abstention sur le score. Détail dans docs/decisions.md et results/retrieval.md.
 - Extension niveau 3 : à choisir d'après un défaut mesuré au niveau 2.

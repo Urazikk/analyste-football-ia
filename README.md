@@ -50,7 +50,7 @@ python eval.py --tests tests_injection.jsonl --extra-corpus tests/injection --ou
 
 ```
 eval.py           évaluation de tous les niveaux sur tests.jsonl
-tests.jsonl       jeu de test (40 cas)
+tests.jsonl       jeu de test (80 cas)
 scripts/          construction du corpus
 src/              code des niveaux, outils, métriques, traces, interface
 tests/            tests pytest
