@@ -35,7 +35,9 @@ def judge_faithfulness(question: str, answer: str, passages: dict[str, str], llm
 
     if not passages:
         return {"faithful": None, "unsupported": [], "tokens": 0}
-    llm = llm or (lambda messages: chat(messages, model=config.JUDGE_MODEL, max_tokens=512))
+    llm = llm or (lambda messages: chat(
+        messages, model=config.JUDGE_MODEL, max_tokens=512, temperature=0.0,
+        base_url=config.JUDGE_BASE_URL, api_key=config.JUDGE_API_KEY))
     extraits = "\n\n".join(f"[{cid}]\n{text}" for cid, text in passages.items())
     resp = llm([{"role": "system", "content": PROMPT},
                 {"role": "user", "content": f"Question : {question}\n\nRéponse :\n{answer}\n\nExtraits cités :\n\n{extraits}"}])
