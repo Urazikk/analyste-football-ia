@@ -89,7 +89,7 @@ traces/
 - [x] Semaine 2 : jeu de test de 80 cas (40 doc, 10 absents, 20 tâches, 10 ambigus), 40 reformulations, 10 cas d'injection
 - [x] Mesures : niveaux 0 et 1 sur les 80 cas ; niveau 2 sur les cas ambigus ; injection aux niveaux 1 et 2
 - [x] Mesures : niveaux 0 à 2 complets sur les 80 cas avec gpt-6-luna, pass^3 compris (16 novembre)
-- [ ] Mesures : robustesse et injection à refaire avec gpt-6-luna
+- [x] Mesures : robustesse (40 reformulations) et injection (10 cas) refaites avec gpt-6-luna (16 novembre)
 - [ ] Gautier : second annotateur du juge, benchmark de modèles, liste des échecs du niveau 2
 - [ ] 22 novembre : choix de l'extension
 - [ ] Semaine 4 : extension et sa mesure, analyse de 5 échecs, rapport, vidéo, traces de démo
