@@ -15,7 +15,7 @@ import tempfile
 from pathlib import Path
 from typing import Any, Callable
 
-from src import agent, config, judge, llm, metrics, rag, tools
+from src import agent, config, judge, level3, llm, metrics, rag, tools
 from src.config import RESULTS_DIR, ROOT, SEED
 from src.result import Result
 
@@ -24,7 +24,7 @@ LEVELS: dict[int, Callable[[str], Result]] = {
     1: rag.answer,
     # En éval, l'utilisateur simulé valide toute action demandée : on vérifie l'état final.
     2: lambda q: agent.answer(q, confirm=lambda name, args: True),
-    # 3: extension, semaine 4
+    3: lambda q: level3.answer(q, confirm=lambda name, args: True),  # extension : planification
 }
 
 
