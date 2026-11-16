@@ -57,7 +57,7 @@ tests/            tests pytest
 docs/             sujet, protocole de test, journal des décisions mesurées
 data/corpus/      documents du RAG
 results/          résultats bruts par niveau et tableau
-traces/           une trace JSONL par exécution
+traces/           une trace JSONL par exécution ; mesures archivées dans mesures-<date>.jsonl.gz (scripts/archive_traces.py)
 ```
 
 Répartition du travail : `GAUTIER.md`. Protocole de test : `docs/protocole.md`. Choix techniques et mesures : `docs/decisions.md`.
