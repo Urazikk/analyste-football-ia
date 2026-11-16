@@ -8,7 +8,7 @@
 
 ## Thème
 - Corpus RAG : lois du jeu (IFAB, vérifier la licence), Wikipédia en secours.
-- Données : StatsBomb open data via `statsbombpy` (sans clé). Périmètre restreint à une ou deux compétitions (à fixer).
+- Données : StatsBomb open data via `statsbombpy` (sans clé). Périmètre : cinq compétitions de sélections (voir Décisions).
 - Outils de l'agent : requêtes sur les événements de match, statistiques, graphiques.
 - Action à valider par l'utilisateur : publier le rapport d'avant-match.
 
@@ -54,7 +54,7 @@ eval.py            # python eval.py : tous les niveaux, results/table.md
 tests.jsonl        # jeu de test (80 cas) ; tests_ambigus.jsonl, tests_absents.jsonl, tests_robustesse.jsonl, tests_injection.jsonl à part
 docs/
   sujet.pdf
-  protocole.md     # protocole de test figé
+  protocole.md     # protocole de test figé, jeux complémentaires datés
   decisions.md     # journal des choix et de leurs mesures
   plan.md          # audit et plan jusqu'au rendu
 src/
@@ -94,7 +94,8 @@ traces/
 - [x] Extension choisie le 16 novembre : planification (docs/plan.md section 6)
 - [x] Niveau 3 codé (`src/level3.py`), mesuré sur les 80 cas, 30 cas ambigus, 10 cas absents nouveaux, robustesse et injection (16 novembre) : Ambigu 0,59 → 0,98, sans régression fiable
 - [x] Simon : sections du rapport (`docs/rapport/simon.md`), assemblage par `scripts/build_report.py` (16 novembre) ; à resserrer avec celles de Gautier pour tenir en 4 pages
-- [ ] Gautier : second annotateur, benchmark de modèles, 5 échecs, traces de démo, vidéo, ses sections du rapport (27 nov.)
+- [x] Gautier : second annotateur (accord 30/30, kappa 1,00), fusionné le 16 novembre
+- [ ] Gautier : benchmark de modèles à finir, 5 échecs et sections du rapport en brouillon (PR 22 et 23), traces de démo, vidéo (27 nov.)
 - [ ] 28 au 30 novembre : assemblage du rapport, vérification depuis un clone neuf, rendu
 
 ## Planning
@@ -103,8 +104,8 @@ traces/
 - Semaine 3 (16 au 22 nov.) : agent, confirmation des actions, traces, pass^3.
 - Semaine 4 (23 au 30 nov.) : extension, analyse des échecs, rapport, vidéo.
 
-## Décisions à fixer (à compléter)
-- Compétitions StatsBomb : Euro 2024 (55, 282), Copa América 2024 (223, 282), CdM 2022 (43, 106). Pas de compétition future dans l'open data : le rapport d'avant-match porte sur une affiche donnée par l'utilisateur, à partir des derniers matchs disponibles des deux sélections.
+## Décisions
+- Compétitions StatsBomb : Euro 2024 (55, 282), Copa América 2024 (223, 282), CdM 2022 (43, 106), plus Euro 2020 (55, 43) et CdM 2018 (43, 3) pour l'historique des confrontations, soit 262 matchs. Pas de compétition future dans l'open data : le rapport d'avant-match porte sur une affiche donnée par l'utilisateur, à partir des derniers matchs disponibles des deux sélections.
 - Modèle LLM : gpt-6-luna via OpenAI depuis le 16 novembre (clé de l'encadrant, raisonnement désactivé), à cause du quota Groq ; les mesures openai/gpt-oss-120b via Groq (poids ouverts, offre gratuite) restent comme benchmark, choisi contre qwen3.8-27b sur les niveaux 0 et 1 (results/choix-llm/). Mistral Small abandonné (offre Free sans API). Benchmark au niveau 2 (10 tâches) contre Qwen et un modèle Ollama, consigné dans docs/decisions.md. Le tableau des niveaux utilise un seul modèle.
 - Corpus RAG : lois du jeu IFAB en français, téléchargées par un script, non commitées (licence) ; Wikipédia en complément.
 - Modèle d'embeddings : multilingual-e5-small, recherche dense seule, morceaux de 600 caractères (sur 40 cas : Recall@5 0,89, MRR 0,76 ; bge-m3 et l'hybride sans gain fiable, l'hybride fragile aux fautes). Pas de seuil d'abstention sur le score. Détail dans docs/decisions.md et results/retrieval.md.
