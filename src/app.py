@@ -214,18 +214,25 @@ def tab_question() -> None:
         if trace:
             st.caption(f"Trace : traces/{trace.name}")
         if res.pending_action:
-            st.warning(f"Action irréversible demandée : {res.pending_action['name']}")
-            st.json(res.pending_action["arguments"])
+            args = res.pending_action["arguments"]
+            st.warning(f"Action irréversible demandée : {res.pending_action['name']}. Rien n'est fait sans votre validation.")
+            if args.get("content"):  # rapport lisible avant validation, arguments bruts en dessous
+                st.markdown(f"**{args.get('title', '')}** ({args.get('home_team', '')} - {args.get('away_team', '')})")
+                st.markdown(args["content"])
+            with st.expander("Arguments de l'action"):
+                st.json(args)
             ok, ko = st.columns(2)
             if ok.button("Valider"):
                 out = json.loads(agent.confirm_pending(res.pending_action, trace_path=res.trace_path))
                 st.session_state["action"] = (("success", f"Rapport publié : {out['result']['path']}") if out["ok"]
                                               else ("error", f"Action bloquée : {out['error']}"))
                 res.pending_action = None
+                st.rerun()  # l'action en attente et ses boutons disparaissent : pas de seconde validation
             elif ko.button("Refuser"):
                 agent.refuse_pending(res.pending_action, trace_path=res.trace_path)
                 st.session_state["action"] = ("info", "Action annulée, rien n'a été publié.")
                 res.pending_action = None
+                st.rerun()
         if "action" in st.session_state:
             kind, text = st.session_state["action"]
             getattr(st, kind)(text)
