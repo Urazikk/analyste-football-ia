@@ -1,6 +1,6 @@
 # Analyste de football : un système génératif qui se mesure
 
-Projet de la mineure IA générative (ECE, Dr. Issam Falih), parcours Texte. Rendu le 30 novembre 2026.
+Projet du cours Generative AI (ECE, Dr. Issam Falih), parcours Texte. Rendu le 30 novembre 2026.
 
 Un assistant qui répond aux questions sur le football et prépare des rapports d'avant-match, construit en 4 niveaux comparés sur le même protocole de test :
 

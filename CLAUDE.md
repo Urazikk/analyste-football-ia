@@ -1,7 +1,7 @@
 # Projet IA générative 2026 : Analyste de football
 
 ## Contexte
-- Mineure IA générative (ECE), encadrant Dr. Issam Falih.
+- Cours Generative AI (ECE), encadrant Dr. Issam Falih.
 - Binôme. Date limite : 30 novembre 2026, 23h59.
 - Parcours Texte, thème officiel "Analyste de football" (aucune proposition à envoyer).
 - Principe du sujet : on ne juge pas le nombre de techniques, mais la capacité à montrer, mesures à l'appui, ce que chaque niveau apporte, ce qu'il coûte et où il échoue. Ne passer au niveau suivant que si une mesure montre qu'il aide.
