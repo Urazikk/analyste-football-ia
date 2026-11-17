@@ -1,0 +1,22 @@
+{
+  "_doc": "Voix off de la vidéo. Un segment par plan, dans l'ordre du montage. offset : seconde du plan (avant accélération) où la phrase commence ; « fin_moins » : seconde comptée depuis la fin du plan. Nombres écrits en lettres pour la synthèse vocale.",
+  "segments": [
+    {"plan": "hook", "clips": [{"offset": 0.3, "texte": "Une règle d'arbitrage à vérifier. Un rapport d'avant-match à boucler avant le coup d'envoi. Et si un assistant s'en chargeait, sans jamais rien inventer ?"}]},
+    {"plan": "intro", "clips": [{"offset": 0.3, "texte": "Voici Analyste de football. Il lit les lois du jeu, interroge deux cent soixante-deux matchs internationaux, et construit vos rapports. Quatre niveaux, du modèle seul jusqu'à l'agent qui planifie. Tous mesurés sur le même protocole."}]},
+    {"plan": "s0", "clips": [{"offset": 0.3, "texte": "Tout commence ici : des questions prêtes à l'emploi, et chaque match de l'Euro, de la Copa América et de la Coupe du monde, à analyser en un clic."}]},
+    {"plan": "s1", "clips": [{"offset": 0.3, "texte": "Une question d'arbitrage ? La recherche documentaire fouille les lois officielles, répond, et cite l'article exact. Vérifiable. En quelques secondes. Pour une fraction de centime."}]},
+    {"plan": "s2", "clips": [{"offset": 0.3, "texte": "Et quand la réponse n'est pas dans les textes ? Il le dit. Pas d'invention."}]},
+    {"plan": "s3", "clips": [{"offset": 0.3, "texte": "Passons à la vitesse supérieure. L'agent enchaîne ses outils : matchs, statistiques, forme, confrontations, pronostic. En huit secondes, le rapport est prêt. Mais publier est irréversible : rien ne part sans votre feu vert."}]},
+    {"plan": "trace", "clips": [{"offset": 0.5, "texte": "Et tout est tracé. Chaque outil, chaque argument, chaque token. Jusqu'à votre validation."}]},
+    {"plan": "s4", "clips": [{"offset": 0.3, "texte": "Dans le rapport, les chiffres sont calculés par le code, jamais par le modèle. Forme, confrontations, cartes des tirs, pronostic. Prêt à être partagé."}]},
+    {"plan": "s5", "clips": [
+      {"offset": 0.3, "texte": "Mais un agent trop zélé a un défaut : il devine. Demandez le rapport de la Coupe du monde deux mille vingt-six : il choisit lui-même une affiche, et s'apprête à la publier."},
+      {"fin_moins": 13.0, "texte": "Notre réponse : le plan. Avant d'agir, le niveau trois réfléchit. La demande est floue ? Il pose la question."}]},
+    {"plan": "resultats", "clips": [
+      {"offset": 1.0, "texte": "Les chiffres parlent. Avec les documents, l'abstention passe de trente à quatre-vingt-dix pour cent."},
+      {"offset": 7.4, "texte": "Seul l'agent réussit les tâches : cent pour cent, trois essais sur trois."},
+      {"offset": 13.2, "texte": "Et le plan fait bondir les demandes ambiguës, de cinquante-neuf à quatre-vingt-dix-huit pour cent, sans rien casser ailleurs."},
+      {"offset": 25.8, "texte": "Chaque gain a un prix : l'agent consomme cinq fois plus que la recherche documentaire. Et nous l'avons mesuré."}]},
+    {"plan": "fin", "clips": [{"offset": 0.4, "texte": "Analyste de football. Il ne se contente pas de répondre : il prouve ce qu'il vaut."}]}
+  ]
+}

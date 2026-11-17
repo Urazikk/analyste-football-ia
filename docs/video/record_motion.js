@@ -3,7 +3,7 @@ const { chromium } = require('playwright');
 const fs = require('fs');
 const path = require('path');
 const out = process.argv[2];
-const DUREES = { intro: 30, trace: 22, resultats: 34, fin: 8 };
+const DUREES = { hook: 11, intro: 17, trace: 22, resultats: 34, fin: 8 };
 (async () => {
   const b = await chromium.launch();
   for (const [scene, d] of Object.entries(DUREES)) {

@@ -19,6 +19,8 @@
   .centre { position: absolute; left: 0; right: 0; text-align: center; }
   h1 { font-size: 118px; margin: 0; color: var(--vert); letter-spacing: -1px; }
   .sous { font-size: 50px; color: var(--pelouse); margin-top: 18px; }
+  .k { font-size: 84px; font-weight: 700; color: #fff; letter-spacing: -1px; }
+  .a.zoom { transform: scale(.86); } .a.zoom.on { transform: none; }
   .phrase { font-size: 58px; line-height: 1.25; padding: 0 220px; }
   .legende { position: absolute; left: 0; right: 0; bottom: 96px; text-align: center; font-size: 50px; color: var(--vert); font-weight: 700; }
   .trait { position: absolute; left: 50%; bottom: 62px; width: 90px; height: 6px; margin-left: -45px; background: var(--pelouse); border-radius: 3px; }
@@ -65,6 +67,14 @@
 </head>
 <body>
 
+<div class="scene" id="hook" style="background:var(--vert)">
+  <div class="centre a k" id="h1" style="top:300px">Une règle d'arbitrage à vérifier.</div>
+  <div class="centre a k" id="h2" style="top:440px">Un rapport d'avant-match à boucler.</div>
+  <div class="centre a k" id="h3" style="top:580px;color:var(--orange)">Sans jamais rien inventer ?</div>
+  <div class="centre a" id="h4" style="top:380px"><h1 style="color:#fff;font-size:150px">Analyste de football</h1>
+    <div class="sous" style="color:#cfe3d8">Quatre niveaux. Un seul protocole. Des chiffres.</div></div>
+</div>
+
 <div class="scene" id="intro">
   <div class="centre a" id="i1" style="top:330px"><h1>Analyste de football</h1><div class="sous">Un système génératif qui se mesure</div></div>
   <div class="centre a phrase" id="i2" style="top:400px">Il répond sur les lois du jeu en citant ses sources,<br>et prépare des rapports d'avant-match à partir de données ouvertes.</div>
@@ -110,11 +120,15 @@ const NOMS = ['LLM seul', 'RAG', 'Agent', 'Agent avec plan'];
 const COURTS = ['LLM', 'RAG', 'Agent', 'Plan'];
 const D = window.DONNEES;
 
-if (scene === 'intro') {            // 30 s
-  on('i1', 0.4); off('i1', 4.6);
-  on('i2', 5.2); off('i2', 10.4);
-  on('i3', 11.0); on('n0', 11.8); on('n1', 14.6); on('n2', 17.4); on('n3', 20.2);
-  on('i4', 23.6); on('i5', 24.0);
+if (scene === 'hook') {             // 11 s
+  on('h1', 0.3); on('h2', 2.4); on('h3', 5.2);
+  off('h1', 7.6); off('h2', 7.6); off('h3', 7.6);
+  document.getElementById('h4').classList.add('zoom'); on('h4', 8.1);
+}
+
+if (scene === 'intro') {            // 17 s
+  on('i3', 0.3); on('n0', 1.6); on('n1', 4.2); on('n2', 7.4); on('n3', 10.4);
+  on('i4', 13.0); on('i5', 13.3);
 }
 
 if (scene === 'trace') {            // 22 s

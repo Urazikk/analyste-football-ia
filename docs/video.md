@@ -1,6 +1,6 @@
 # Scénario de la vidéo (3 à 5 minutes)
 
-**La vidéo est faite : `docs/video/demo.mp4`** (4 min 28, 1920 × 1080, sans voix, textes à l'écran, musique synthétisée, interface du 17 novembre). Elle est produite par script, comme celle d'Agentic MBSE : séquences animées et enregistrement réel de l'interface.
+**La vidéo est faite : `docs/video/demo.mp4`** (3 min 02, 1920 × 1080, voix off générée par XTTS v2, musique synthétisée, interface du 17 novembre). Montage rythmé : accroche animée, prises de l'interface accélérées et calées sur la voix, musique baissée sous la voix.
 
 | Étape | Commande | Rôle |
 |---|---|---|
@@ -10,7 +10,9 @@
 | 4 | `node docs/video/record_motion.js <animations>` | enregistre l'ouverture, la trace, les résultats et la fermeture (`motion.html`) |
 | 5 | `python docs/video/monter.py <prises> <animations> docs/video/demo.mp4` | coupe, assemble et ajoute la musique (ffmpeg) |
 
-Plan du montage : ouverture (30 s), questions proposées et matchs à analyser (20 s), réponse citée (25 s), abstention (20 s), tâche multi-étapes et action validée (48 s), trace de cette exécution (22 s), rapport publié (22 s), demande ambiguë au niveau 2 puis au niveau 3 (40 s), résultats et coûts (34 s), fermeture (8 s). Les scènes 1 et 2 passent par les questions proposées de l'interface. Le niveau 2 varie d'un essai à l'autre : le script rejoue la demande ambiguë jusqu'à ce qu'il choisisse lui-même une affiche, et le montage garde cet essai.
+Voix off : texte dans `docs/video/voix.json`, voix « Baldur Sanjin » de XTTS v2 (Coqui, modèle ouvert, licence CPML non commerciale acceptée par Simon le 17 novembre 2026 pour ce projet d'école). Synthèse dans un environnement à part (`pip install coqui-tts`, PyTorch et torchaudio 2.11) : `COQUI_TOS_AGREED=1 python docs/video/voix.py "Baldur Sanjin" <voix>`, puis `python docs/video/monter_voix.py <prises> <animations> <voix> docs/video/demo.mp4`. Aucune voix de personne réelle n'est imitée.
+
+Version sans voix (montage d'origine) : Plan du montage : ouverture (30 s), questions proposées et matchs à analyser (20 s), réponse citée (25 s), abstention (20 s), tâche multi-étapes et action validée (48 s), trace de cette exécution (22 s), rapport publié (22 s), demande ambiguë au niveau 2 puis au niveau 3 (40 s), résultats et coûts (34 s), fermeture (8 s). Les scènes 1 et 2 passent par les questions proposées de l'interface. Le niveau 2 varie d'un essai à l'autre : le script rejoue la demande ambiguë jusqu'à ce qu'il choisisse lui-même une affiche, et le montage garde cet essai.
 
 Le reste de ce fichier est le scénario d'origine, utile pour refaire une prise à la main ou ajouter une voix.
 
