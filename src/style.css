@@ -75,7 +75,8 @@
   box-shadow: 0 4px 14px rgba(18, 55, 42, .06);
 }
 [data-testid="stMetricLabel"] p { color: var(--af-gris); font-size: .85rem; }
-[data-testid="stMetricValue"] { color: var(--af-vert); font-weight: 700; }
+[data-testid="stMetricValue"] { color: var(--af-vert); font-weight: 700; font-size: 1.7rem; }
+[data-testid="stMetricValue"] > div { overflow: visible; text-overflow: clip; }
 
 /* réponse */
 .af-answer {

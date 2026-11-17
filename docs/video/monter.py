@@ -76,7 +76,7 @@ def monter(ui: Path, motion: Path, sortie: Path) -> None:
     tmp = sortie.parent / "_plans"
     tmp.mkdir(parents=True, exist_ok=True)
     ordre = [("intro", motion / "intro.webm", 0.3, None)]
-    for s in ("s1", "s2", "s3"):
+    for s in ("s0", "s1", "s2", "s3") if "s0" in marks else ("s1", "s2", "s3"):
         ordre.append((s, ui / f"{s}.webm", marks[s]["start"] + 0.2, marks[s]["end"]))
     ordre.append(("trace", motion / "trace.webm", 0.3, None))
     ordre.append(("s4", ui / "s4.webm", marks["s4"]["start"] + 0.2, marks["s4"]["end"]))

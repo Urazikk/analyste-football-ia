@@ -55,7 +55,19 @@ const OVERLAY = `
       async ask(q) {
         const ta = p.locator('textarea[aria-label="Question"]').first();
         await h.click(ta); await ta.fill(''); await ta.pressSequentially(q, { delay: 22 }); await ta.press('Control+Enter'); await p.waitForTimeout(500);
-        await h.click(p.getByRole('button', { name: 'Envoyer' })); await h.settle();
+        await h.click(p.getByRole('button', { name: 'Envoyer' })); await h.settle(); await h.answer();
+      },
+      // question choisie parmi les suggestions de l'interface (thème, puis puce), puis envoyée
+      async suggest(theme, text) {
+        await h.click(p.locator('.st-key-sugg [data-testid="stButtonGroup"]').first().getByText(theme, { exact: true }));
+        await h.settle();
+        await h.click(p.locator('.st-key-sugg').getByText(text).first()); await h.settle(); await p.waitForTimeout(600);
+        await h.click(p.getByRole('button', { name: 'Envoyer' })); await h.settle(); await h.answer();
+      },
+      // amène la réponse au centre de l'écran
+      async answer() {
+        const a = p.locator('[class*="st-key-answer_"]').first();
+        if (await a.count()) { await a.evaluate((el) => el.scrollIntoView({ block: 'start', behavior: 'smooth' })); await p.waitForTimeout(900); }
       },
       text: () => p.locator('[data-testid="stMain"]').innerText(),
       mark: () => (Date.now() - t0) / 1000,
@@ -79,21 +91,30 @@ const OVERLAY = `
   const only = process.argv[3] ? process.argv[3].split(',') : null;
   const run = async (name, fn) => { if (!only || only.includes(name)) await scene(name, fn); };
 
+  await run('s0', async (h) => {
+    await h.cap('Des questions proposées par thème : un clic choisit aussi le bon niveau'); await h.wait(1200);
+    await h.point(h.p.locator('.st-key-sugg [data-testid="stButtonGroup"]').first()); await h.wait(1500);
+    await h.click(h.p.locator('.st-key-sugg').getByText('Données de match', { exact: true })); await h.settle(); await h.wait(1600);
+    await h.cap('Et les 262 matchs des données StatsBomb, à analyser en un clic'); 
+    await h.point(h.p.getByText('Matchs à analyser')); await h.wait(1200);
+    await h.point(h.p.locator('.st-key-sugg').getByText('Carte des tirs', { exact: true })); await h.wait(2600);
+    await h.click(h.p.locator('.st-key-sugg').getByText('Lois du jeu', { exact: true })); await h.settle(); await h.wait(800);
+  });
   await run('s1', async (h) => {
-    await h.cap('Niveau 1 · RAG : la réponse cite sa source'); await h.level('1 · RAG');
-    await h.ask("À quelle distance du ballon les adversaires doivent-ils se tenir lors d'un coup franc ?");
+    await h.cap('Niveau 1 · RAG : la réponse cite sa source');
+    await h.suggest('Lois du jeu', 'À quelle distance du ballon doivent se placer');
     await h.wait(1800);
     await h.click(h.p.locator('[data-testid="stExpander"] summary').first()); await h.wait(600);
     await h.cap("L'extrait cité vient des lois du jeu : la réponse est vérifiable"); await h.wait(3800);
     await h.point(h.p.getByText('Coût équivalent').first()); await h.cap('Tokens, coût et latence sont affichés à chaque requête'); await h.wait(3000);
   });
   await run('s2', async (h) => {
-    await h.cap('Une question dont la réponse est absente des documents'); await h.level('1 · RAG');
-    await h.ask("Quelle est la durée maximale d'un contrat de joueur professionnel ?");
+    await h.cap('Une question dont la réponse est absente des documents');
+    await h.suggest('Cas limites', 'Quelle est la durée maximale');
     await h.cap("Abstention : le système dit qu'il ne sait pas, sans inventer"); await h.wait(4500);
   });
   await run('s3', async (h) => {
-    await h.cap('Niveau 2 · Agent : une tâche en plusieurs étapes'); await h.level('2 · Agent');
+    await h.cap('Une tâche en plusieurs étapes : préparer et publier un rapport'); await h.level('2 · Agent');
     await h.ask("Prépare et publie le rapport d'avant-match Angleterre - Espagne avec le nombre de tirs cadrés de l'Espagne lors de la finale de l'Euro 2024.");
     await h.cap("L'agent a enchaîné ses outils sur les données StatsBomb"); await h.wait(1200);
     await h.click(h.p.getByText(/Appels d'outils \(\d+\)/)); await h.wait(4200);
@@ -118,7 +139,7 @@ const OVERLAY = `
   await run('s5', async (h) => {
     await h.cap('Une demande ambiguë : aucune affiche n\'est donnée'); await h.level('2 · Agent');
     let invented = false, last = 0;  // le niveau 2 varie d'un essai à l'autre : on garde le dernier essai au montage
-    for (let k = 0; k < 5 && !invented; k++) {
+    for (let k = 0; k < 9 && !invented; k++) {
       last = h.mark();
       await h.ask("Publie le rapport d'avant-match de la Coupe du monde 2026.");
       invented = (await h.p.getByRole('button', { name: 'Refuser' }).count()) > 0;
