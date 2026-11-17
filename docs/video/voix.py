@@ -32,6 +32,11 @@ def phrases(texte: str) -> list[str]:
 
 
 def mots(s: str) -> list[str]:
+    """Mots normalisés ; les nombres écrits en chiffres par Whisper sont remis en lettres."""
+    from num2words import num2words
+
+    s = s.replace("%", " pour cent ")
+    s = re.sub(r"\d+", lambda m: " " + num2words(int(m.group()), lang="fr") + " ", s)
     s = unicodedata.normalize("NFKD", s.lower()).encode("ascii", "ignore").decode()
     return re.findall(r"[a-z0-9]+", s)
 
@@ -75,13 +80,15 @@ def rogner(x: np.ndarray) -> np.ndarray:
     return y
 
 
-def main(voix: str, out: Path, prises: int = 3) -> None:
+def main(voix: str, out: Path, prises: int = 3, plans: set[str] | None = None) -> None:
     out.mkdir(parents=True, exist_ok=True)
     segments = json.loads((Path(__file__).parent / "voix.json").read_text(encoding="utf-8"))["segments"]
     tts = TTS("tts_models/multilingual/multi-dataset/xtts_v2")
     asr = pipeline("automatic-speech-recognition", model="openai/whisper-small", device="cpu")
     rapport = []
     for seg in segments:
+        if plans and seg["plan"] not in plans:
+            continue
         for n, clip in enumerate(seg["clips"]):
             morceaux = []
             for p in phrases(clip["texte"]):
@@ -101,8 +108,12 @@ def main(voix: str, out: Path, prises: int = 3) -> None:
                 print(f"{seg['plan']:10s} écart {err:.2f}  {p[:60]}")
                 morceaux += [x, np.zeros(int(PAUSE * SR), dtype=np.float32)]
             sf.write(out / f"{seg['plan']}_{n}.wav", np.concatenate(morceaux[:-1]), SR)
-    (out / "prises.json").write_text(json.dumps(rapport, ensure_ascii=False, indent=1), encoding="utf-8")
+    ancien = json.loads((out / "prises.json").read_text(encoding="utf-8")) if (out / "prises.json").exists() else []
+    garde = [r for r in ancien if not plans or r["plan"] not in plans]
+    (out / "prises.json").write_text(json.dumps(garde + rapport, ensure_ascii=False, indent=1), encoding="utf-8")
 
 
 if __name__ == "__main__":
-    main(sys.argv[1], Path(sys.argv[2]), int(sys.argv[3]) if len(sys.argv) > 3 else 3)
+    # python voix.py <voix> <sortie> [prises] [plan,plan...]  : ne refait que les plans donnés
+    main(sys.argv[1], Path(sys.argv[2]), int(sys.argv[3]) if len(sys.argv) > 3 else 3,
+         set(sys.argv[4].split(",")) if len(sys.argv) > 4 else None)

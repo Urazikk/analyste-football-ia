@@ -1,0 +1,230 @@
+[
+ {
+  "plan": "hook",
+  "phrase": "Une règle d'arbitrage à vérifier.",
+  "ecart": 0.0,
+  "lu": "une règle d'arbitrage à vérifier."
+ },
+ {
+  "plan": "hook",
+  "phrase": "Un rapport d'avant-match à boucler avant le coup d'envoi.",
+  "ecart": 0.0,
+  "lu": "un rapport d'avant-match à boucler avant le coup d'envoi."
+ },
+ {
+  "plan": "hook",
+  "phrase": "Et si un assistant s'en chargeait, sans jamais rien inventer ?",
+  "ecart": 0.0,
+  "lu": "Et si un assistant s'en chargeait, sans jamais rien inventer."
+ },
+ {
+  "plan": "intro",
+  "phrase": "Voici Analyste de football.",
+  "ecart": 0.25,
+  "lu": "Voici l'analyste de football."
+ },
+ {
+  "plan": "intro",
+  "phrase": "Il lit les lois du jeu, interroge deux cent soixante-deux matchs internationaux, et construit vos rapports.",
+  "ecart": 0.235,
+  "lu": "Il lit les lois du jeu, interroge 262 matchs internationaux, et construit vos rapports."
+ },
+ {
+  "plan": "intro",
+  "phrase": "Quatre niveaux, du modèle seul jusqu'à l'agent qui planifie.",
+  "ecart": 0.091,
+  "lu": "4 niveaux du modèle seul jusqu'à l'agent qui planifie."
+ },
+ {
+  "plan": "intro",
+  "phrase": "Tous mesurés sur le même protocole.",
+  "ecart": 0.333,
+  "lu": "tout mesuré sur le même protocole."
+ },
+ {
+  "plan": "s0",
+  "phrase": "Tout commence ici : des questions prêtes à l'emploi, et chaque match de l'Euro, de la Copa América et de la Coupe du monde, à analyser en un clic.",
+  "ecart": 0.033,
+  "lu": "Tout commence ici, des questions prêtes à l'emploi, et chaque match de l'euro, de la Copa America et de la Coupe du Monde a analysé en un clic."
+ },
+ {
+  "plan": "s1",
+  "phrase": "Une question d'arbitrage ?",
+  "ecart": 0.0,
+  "lu": "Une question d'arbitrage ?"
+ },
+ {
+  "plan": "s1",
+  "phrase": "La recherche documentaire fouille les lois officielles, répond, et cite l'article exact.",
+  "ecart": 0.077,
+  "lu": "La recherche documentaire fouille les lois officielles répond et cite l'article est exact."
+ },
+ {
+  "plan": "s1",
+  "phrase": "Vérifiable.",
+  "ecart": 0.0,
+  "lu": "vérifiable."
+ },
+ {
+  "plan": "s1",
+  "phrase": "En quelques secondes.",
+  "ecart": 0.0,
+  "lu": "en quelques secondes."
+ },
+ {
+  "plan": "s1",
+  "phrase": "Pour une fraction de centime.",
+  "ecart": 0.0,
+  "lu": "pour une fraction de centime."
+ },
+ {
+  "plan": "s2",
+  "phrase": "Et quand la réponse n'est pas dans les textes ?",
+  "ecart": 0.0,
+  "lu": "et quand la réponse n'est pas dans les textes."
+ },
+ {
+  "plan": "s2",
+  "phrase": "Il le dit.",
+  "ecart": 0.0,
+  "lu": "Il le dit."
+ },
+ {
+  "plan": "s2",
+  "phrase": "Pas d'invention.",
+  "ecart": 0.0,
+  "lu": "Pas d'invention."
+ },
+ {
+  "plan": "trace",
+  "phrase": "Et tout est tracé.",
+  "ecart": 0.0,
+  "lu": "et tout est tracé."
+ },
+ {
+  "plan": "trace",
+  "phrase": "Chaque outil, chaque argument, chaque token.",
+  "ecart": 0.0,
+  "lu": "chaque outil, chaque argument, chaque token."
+ },
+ {
+  "plan": "trace",
+  "phrase": "Jusqu'à votre validation.",
+  "ecart": 0.0,
+  "lu": "jusqu'à votre validation."
+ },
+ {
+  "plan": "s5",
+  "phrase": "Mais un agent trop zélé a un défaut : il devine.",
+  "ecart": 0.0,
+  "lu": "Mais un agent trop zélé a un défaut, il devine."
+ },
+ {
+  "plan": "s5",
+  "phrase": "Demandez le rapport de la Coupe du monde deux mille vingt-six : il choisit lui-même une affiche, et s'apprête à la publier.",
+  "ecart": 0.208,
+  "lu": "demander le rapport de la Coupe du Monde 2026, il choisit lui-même une affiche et s'apprête à la publier."
+ },
+ {
+  "plan": "s5",
+  "phrase": "Notre solution : planifier avant d'agir.",
+  "ecart": 0.167,
+  "lu": "notre solution planifiée avant d'agir."
+ },
+ {
+  "plan": "s5",
+  "phrase": "Face à une demande floue, l'assistant pose simplement la question.",
+  "ecart": 0.0,
+  "lu": "Face à une demande floue, l'assistant pose simplement la question."
+ },
+ {
+  "plan": "resultats",
+  "phrase": "Les chiffres parlent.",
+  "ecart": 0.0,
+  "lu": "Les chiffres parlent."
+ },
+ {
+  "plan": "resultats",
+  "phrase": "Avec les documents, l'abstention passe de trente à quatre-vingt-dix pour cent.",
+  "ecart": 0.429,
+  "lu": "Avec les documents, l'abstention passe de 30 à 90%."
+ },
+ {
+  "plan": "resultats",
+  "phrase": "Seul l'agent réussit les tâches : cent pour cent, trois essais sur trois.",
+  "ecart": 0.231,
+  "lu": "Seul l'agent réussit les tâches, 100% trois essais sur trois."
+ },
+ {
+  "plan": "resultats",
+  "phrase": "Et le plan fait bondir les demandes ambiguës, de cinquante-neuf à quatre-vingt-dix-huit pour cent, sans rien casser ailleurs.",
+  "ecart": 0.364,
+  "lu": "Et le plan fait bondir les demandes ambiguës de 59 à 98% sans rien casser ailleurs."
+ },
+ {
+  "plan": "resultats",
+  "phrase": "Chaque gain a un prix : l'agent consomme cinq fois plus que la recherche documentaire.",
+  "ecart": 0.0,
+  "lu": "Chaque gain a un prix. L'agent consomme cinq fois plus que la recherche documentaire."
+ },
+ {
+  "plan": "resultats",
+  "phrase": "Et nous l'avons mesuré.",
+  "ecart": 0.0,
+  "lu": "et nous l'avons mesuré."
+ },
+ {
+  "plan": "fin",
+  "phrase": "Analyste de football.",
+  "ecart": 0.0,
+  "lu": "Analyste de football"
+ },
+ {
+  "plan": "fin",
+  "phrase": "Il ne se contente pas de répondre : il prouve ce qu'il vaut.",
+  "ecart": 0.0,
+  "lu": "Il ne se contente pas de répondre. Il prouve ce qu'il vaut."
+ },
+ {
+  "plan": "s3",
+  "phrase": "Passons à la vitesse supérieure.",
+  "ecart": 0.0,
+  "lu": "Passons à la vitesse supérieure."
+ },
+ {
+  "plan": "s3",
+  "phrase": "L'agent enchaîne ses outils : matchs, statistiques, forme, confrontations, pronostic.",
+  "ecart": 0.2,
+  "lu": "L'agent enchaîne ses outils, matchs, statistiques, formes, confrontations, pronostiques."
+ },
+ {
+  "plan": "s3",
+  "phrase": "En huit secondes, le rapport est prêt.",
+  "ecart": 0.0,
+  "lu": "En huit secondes, le rapport est prêt."
+ },
+ {
+  "plan": "s3",
+  "phrase": "Mais publier est irréversible : rien ne part sans votre feu vert.",
+  "ecart": 0.0,
+  "lu": "Mais publier est irréversible. Rien ne part sans votre feu vert."
+ },
+ {
+  "plan": "s4",
+  "phrase": "Dans le rapport, les chiffres sont calculés par le code, jamais par le modèle.",
+  "ecart": 0.0,
+  "lu": "Dans le rapport, les chiffres sont calculés par le code, jamais par le modèle."
+ },
+ {
+  "plan": "s4",
+  "phrase": "Forme, confrontations, cartes des tirs, pronostic.",
+  "ecart": 0.5,
+  "lu": "forme, confrontation, carte des tirs, pronostique."
+ },
+ {
+  "plan": "s4",
+  "phrase": "Prêt à partager.",
+  "ecart": 0.0,
+  "lu": "prêt à partager."
+ }
+]

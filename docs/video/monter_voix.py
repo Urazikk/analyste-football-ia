@@ -1,7 +1,7 @@
 """Montage de la vidéo avec voix off : python docs/video/monter_voix.py <prises interface> <animations> <voix> <sortie.mp4>
 
 Chaque plan est calé sur sa voix (docs/video/voix.json) : les prises de l'interface sont accélérées jusqu'à
-2,6 fois pour supprimer les attentes, puis prolongées sur la dernière image si la voix dure plus longtemps.
+2 fois pour supprimer les attentes, puis prolongées sur la dernière image si la voix dure plus longtemps.
 Musique synthétisée à 112 battements par minute, baissée automatiquement sous la voix. ffmpeg requis.
 """
 from __future__ import annotations
@@ -15,7 +15,7 @@ from pathlib import Path
 import numpy as np
 
 HERE = Path(__file__).parent
-FPS, FADE, MARGE = 30, 0.25, 0.9
+FPS, FADE, MARGE = 30, 0.25, 1.2
 ORDRE = ["hook", "intro", "s0", "s1", "s2", "s3", "trace", "s4", "s5", "resultats", "fin"]
 ANIMES = {"hook", "intro", "trace", "resultats", "fin"}
 
@@ -100,9 +100,9 @@ def monter(ui: Path, anim: Path, voix: Path, sortie: Path) -> None:
         clips = [(voix / f"{plan}_{i}.wav", c) for i, c in enumerate(segs[plan])]
         dv = [duree(f) for f, _ in clips]
         if plan in ANIMES:
-            vitesse = {"trace": 1.4}.get(plan, 1.0)  # la trace défile plus vite, la voix y est courte
+            vitesse = {"trace": 1.2}.get(plan, 1.0)  # la trace défile plus vite, la voix y est courte
         elif len(clips) == 1:  # accélérer l'interface jusqu'à la longueur de la voix
-            vitesse = min(max((b - a) / (dv[0] + 0.3 + MARGE), 1.0), 2.6)
+            vitesse = min(max((b - a) / (dv[0] + 0.3 + MARGE), 1.0), 2.0)
         else:
             vitesse = 1.25
         fin_prec, places = 0.0, []
