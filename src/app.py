@@ -5,6 +5,7 @@ Lancement : streamlit run src/app.py
 from __future__ import annotations
 
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -12,10 +13,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import streamlit as st  # noqa: E402
 
-from src import agent, config, export, level3, llm, rag, report  # noqa: E402
+from src import agent, catalog, config, export, level3, llm, rag, report  # noqa: E402
 from src.result import Result  # noqa: E402
 
 LEVELS = {0: "0 · LLM seul", 1: "1 · RAG", 2: "2 · Agent", 3: "3 · Agent avec plan"}
+LEVEL_INFO = {0: ("#6b7684", "Le modèle seul, sans documents ni outils : la référence à battre."),
+              1: ("#3b6ea5", "Cherche dans les lois du jeu, cite ses sources, s'abstient si rien n'est trouvé."),
+              2: ("#1f6f4a", "Utilise les outils sur les données de matchs ; toute publication attend votre validation."),
+              3: ("#e8892b", "Planifie avant d'agir : demande une précision si la demande est floue.")}
+CSS = (Path(__file__).parent / "style.css").read_text(encoding="utf-8")
 STATUS = {"abstained": ("Abstention : rien de fiable dans les documents.", st.info),
           "clarified": ("Question de précision.", st.info),
           "refused": ("Refus : hors sujet.", st.warning)}
@@ -188,8 +194,54 @@ def tab_prediction() -> None:
         st.video(video)
 
 
+def _pick(key: str, choices: dict[str, tuple[str, int]]) -> None:
+    """Puce choisie : remplit la question et le niveau conseillé, puis libère la puce."""
+    picked = st.session_state.get(key)
+    if picked:
+        st.session_state["question"], st.session_state["level"] = choices[picked]
+        st.session_state[key] = None
+
+
+@st.cache_data(show_spinner=False)
+def match_list() -> list[dict]:
+    from src import data
+
+    if not (data.cache_dir() / "matches").exists():
+        return []
+    return catalog.matches()
+
+
+def suggestions() -> None:
+    """Questions proposées par thème, et matchs à analyser."""
+    left, right = st.container(key="sugg").columns([3, 2], gap="large")
+    with left:
+        st.html('<div class="af-section">Questions proposées</div>')
+        cats = [c for c, _ in catalog.QUESTIONS]
+        cat = st.segmented_control("Thème", cats, default=cats[0], key="theme", label_visibility="collapsed") or cats[0]
+        qs = dict(catalog.QUESTIONS)[cat]
+        choices = {f"{q}  ({what})": (q, lv) for q, lv, what in qs}
+        st.pills("Questions", list(choices), key="pick_q", label_visibility="collapsed",
+                 on_change=_pick, args=("pick_q", choices))
+    with right:
+        st.html('<div class="af-section">Matchs à analyser</div>')
+        ms = match_list()
+        if not ms:
+            st.caption("Données StatsBomb absentes : `python scripts/fetch_statsbomb.py`.")
+            return
+        comps = sorted({m["competition_fr"] for m in ms}, key=lambda c: (c[-4:], c.startswith("Euro")), reverse=True)
+        comp = st.selectbox("Compétition", comps, key="comp")
+        pool = [m for m in ms if m["competition_fr"] == comp]
+        m = st.selectbox("Match", pool, key="match", format_func=lambda x: x["label"].split("  ·  ")[0]
+                         + f"  ·  {x['stage_fr']}")
+        choices = {name: (q, lv) for name, q, lv in catalog.match_questions(m)}
+        st.pills("Analyses", list(choices), key="pick_m", label_visibility="collapsed",
+                 on_change=_pick, args=("pick_m", choices))
+
+
 def tab_question() -> None:
-    question = st.text_area("Question")
+    suggestions()
+    question = st.text_area("Question", key="question", height=90,
+                            placeholder="Posez une question, ou choisissez une suggestion ci-dessus.")
 
     if st.button("Envoyer", type="primary") and question:
         try:
@@ -203,7 +255,9 @@ def tab_question() -> None:
     res = st.session_state.get("res")
     if res:
         show_status(res)
-        st.markdown(res.answer)
+        with st.container(key=f"answer_{res.level}"):
+            # images citées par le modèle avec un chemin local : affichées en dessous par show_plots
+            st.markdown(re.sub(r"!\[[^\]]*\]\([^)]*\)", "", res.answer))
         show_plots(res)
         show_sources(res)
         show_costs(res)
@@ -238,11 +292,21 @@ def tab_question() -> None:
             getattr(st, kind)(text)
 
 
-st.set_page_config(page_title="Analyste de football", layout="wide")
-st.title("Analyste de football")
+st.set_page_config(page_title="Analyste de football", page_icon="⚽", layout="wide")
+st.html("<style>" + CSS + "".join(f".st-key-answer_{lv}{{--af-c:{c}}}" for lv, (c, _) in LEVEL_INFO.items())
+        + ''.join(f'.st-key-answer_{lv}{{background:#fff;border-radius:18px;padding:18px 22px;'
+                  'border:1px solid #e3e8e4;border-left:6px solid var(--af-c);box-shadow:0 6px 18px rgba(18,55,42,.07)}'
+                  for lv in LEVEL_INFO) + "</style>")
 
-level = st.sidebar.radio("Niveau (onglet Question)", list(LEVELS), format_func=LEVELS.get)
-st.sidebar.caption(f"Modèle : {config.LLM_MODEL}")
+level = st.sidebar.radio("Niveau (onglet Question)", list(LEVELS), format_func=LEVELS.get, key="level")
+color, info = LEVEL_INFO[level]
+st.sidebar.html(f'<div class="af-level" style="--af-c:{color}"><b>{LEVELS[level]}</b><span>{info}</span></div>')
+st.sidebar.caption(f"Modèle : {config.LLM_MODEL} · coût au tarif du modèle")
+st.html('<div class="af-hero"><h1>Analyste de football</h1>'
+        "<p>Lois du jeu avec sources citées, statistiques des matchs StatsBomb, rapports d'avant-match validés "
+        "par vous. Quatre niveaux, mesurés sur le même protocole.</p><div class=\"af-chips\">"
+        + "".join(f'<span class="af-chip{" af-on" if lv == level else ""}">{name}</span>' for lv, name in LEVELS.items())
+        + "</div></div>")
 tab_q, tab_c, tab_p, tab_r = st.tabs(["Question", "Comparer les niveaux", "Pronostic", "Rapports publiés"])
 with tab_q:
     tab_question()
