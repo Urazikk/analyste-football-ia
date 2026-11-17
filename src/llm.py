@@ -29,7 +29,12 @@ def _get_client(base_url: str | None = None, api_key: str = ""):
         from openai import OpenAI
 
         # max_retries : reprise avec attente sur 429 (offre gratuite limitée en tokens par minute)
-        _clients[url] = OpenAI(base_url=url, api_key=api_key or config.LLM_API_KEY or "none", max_retries=8)
+        # La clé du modèle évalué ne sert que pour son propre fournisseur : jamais envoyée à un autre (ex. le juge)
+        same = url == config.LLM_BASE_URL
+        key = api_key or (config.LLM_API_KEY if same else "")
+        if not key and not same:
+            raise RuntimeError(f"Aucune clé pour {url} : renseigner JUDGE_API_KEY, ou lancer eval.py avec --no-judge.")
+        _clients[url] = OpenAI(base_url=url, api_key=key or "none", max_retries=8)
     return _clients[url]
 
 

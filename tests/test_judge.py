@@ -60,3 +60,17 @@ def test_second_annotator_does_not_touch_simon(monkeypatch, tmp_path):
     assert [r["humain"] for r in rows] == [True, False, True, False]
     assert all(isinstance(r["humain_gautier"], bool) for r in rows)
     assert "4 réponses annotées par les deux" in cj.agreement("gautier")
+
+
+def test_judge_never_receives_the_main_key(monkeypatch):
+    import pytest
+
+    from src import config, llm
+
+    monkeypatch.setattr(config, "LLM_BASE_URL", "https://api.openai.com/v1")
+    monkeypatch.setattr(config, "LLM_API_KEY", "sk-cle-du-modele")
+    monkeypatch.setattr(llm, "_clients", {})
+    with pytest.raises(RuntimeError, match="JUDGE_API_KEY"):
+        llm._get_client("https://api.groq.com/openai/v1", "")
+    assert llm._get_client("https://api.groq.com/openai/v1", "gsk-juge").api_key == "gsk-juge"
+    assert llm._get_client(None, "").api_key == "sk-cle-du-modele"
