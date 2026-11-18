@@ -1,7 +1,7 @@
 # Projet IA générative 2026 : Analyste de football
 
 ## Contexte
-- Mineure IA générative (ECE), encadrant Dr. Issam Falih.
+- Cours Generative AI (ECE), encadrant Dr. Issam Falih.
 - Binôme. Date limite : 30 novembre 2026, 23h59.
 - Parcours Texte, thème officiel "Analyste de football" (aucune proposition à envoyer).
 - Principe du sujet : on ne juge pas le nombre de techniques, mais la capacité à montrer, mesures à l'appui, ce que chaque niveau apporte, ce qu'il coûte et où il échoue. Ne passer au niveau suivant que si une mesure montre qu'il aide.
@@ -95,7 +95,8 @@ traces/
 - [x] Niveau 3 codé (`src/level3.py`), mesuré sur les 80 cas, 30 cas ambigus, 10 cas absents nouveaux, robustesse et injection (16 novembre) : Ambigu 0,59 → 0,98, sans régression fiable
 - [x] Simon : sections du rapport (`docs/rapport/simon.md`), assemblage par `scripts/build_report.py` (16 novembre) ; à resserrer avec celles de Gautier pour tenir en 4 pages
 - [x] Gautier : second annotateur (accord 30/30, kappa 1,00), fusionné le 16 novembre
-- [ ] Gautier : benchmark de modèles à finir, 5 échecs et sections du rapport en brouillon (PR 22 et 23), traces de démo, vidéo (27 nov.)
+- [x] Traces des mesures archivées, traces de démo, vidéo de démonstration (`docs/video/demo.mp4`, produite par script) : 16 novembre
+- [ ] Gautier : benchmark de modèles à finir (24 essais gpt-oss-120b sur 60, reprise planifiée ; modèle Ollama), 5 échecs et sections du rapport en brouillon (PR 22 et 23)
 - [ ] 28 au 30 novembre : assemblage du rapport, vérification depuis un clone neuf, rendu
 
 ## Planning

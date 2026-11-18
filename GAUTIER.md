@@ -33,7 +33,7 @@ Les sections 1 à 8 plus bas sont faites et restent pour mémoire. Rien de ce qu
 ### Fait par Simon le 16 novembre pour t'avancer
 
 - **G4, traces de démo** : `traces/demo-*.jsonl` (5 traces jouées dans l'interface), et toutes les traces des mesures du jour dans `traces/mesures-20261116.jsonl.gz`. Archive les tiennes du 11 novembre avec `python scripts/archive_traces.py 20261111` (une est citée dans `docs/echecs.md`).
-- **G5, vidéo** : scénario complet dans `docs/video.md` (questions exactes, ce qu'il faut montrer, durées, préparation). Il reste à enregistrer.
+- **G5, vidéo** : faite par script, `docs/video/demo.mp4` (3 min 58, sans voix). Scénario et commandes dans `docs/video.md`. À regarder et à valider à deux ; une voix peut être ajoutée par-dessus.
 - **Interface** : l'action en attente affiche le rapport en clair avant validation, et disparaît après « Valider » ou « Refuser ».
 - **G2, benchmark** : la reprise des essais `gpt-oss-120b` est lancée depuis la session de Simon (quota Groq de son compte). Vérifie `results/raw_level2.jsonl` sur `main` avant de relancer de ton côté, pour ne pas mesurer deux fois.
 

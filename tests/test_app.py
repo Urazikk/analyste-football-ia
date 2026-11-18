@@ -98,3 +98,16 @@ def test_reports_tab_offers_pdf(monkeypatch):
     assert not at.exception
     assert any("Avant-match" in e.label for e in at.expander)
     assert p.with_suffix(".pdf").exists()
+
+
+def test_catalog_questions_and_match_prompts():
+    from src import catalog
+
+    assert all(lv in (0, 1, 2, 3) for _, qs in catalog.QUESTIONS for _, lv, _ in qs)
+    m = {"match_id": 1, "date": "2021-07-11", "competition": "Europe - UEFA Euro", "stage": "Final",
+         "home_team": "Italy", "away_team": "England", "score": "1-1"}
+    assert catalog.competition(m) == "Euro 2020"
+    m = {**m, "home_fr": "Italie", "away_fr": "Angleterre", "competition_fr": "Euro 2020", "stage_fr": "finale"}
+    prompts = catalog.match_questions(m)
+    assert len(prompts) == 4 and all("Italie - Angleterre" in q for _, q, _ in prompts)
+
