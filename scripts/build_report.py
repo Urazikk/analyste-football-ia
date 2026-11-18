@@ -139,13 +139,33 @@ def absents() -> str:
     return " et ".join(out) or "mesure à venir"
 
 
+def benchmark() -> str:
+    """Benchmark de modèles au niveau 2 sur les 20 tâches (3 essais), depuis results/raw_level2.jsonl."""
+    rows = [r for r in ev._read_rows(RESULTS_DIR / "raw_level2.jsonl") if r["type"] == "task"]
+    poids = {"gpt-6-luna": "fermés", "openai/gpt-oss-120b": "ouverts"}
+    lines = ["| Modèle | Poids | Essais aboutis | Succès tâches | pass^3 | Chiffres non soutenus | Tokens par tâche | Latence (s) |",
+             "|---|---|---|---|---|---|---|---|"]
+    for model in poids:
+        mr = [r for r in rows if r.get("model") == model]
+        if not mr:
+            continue
+        s = ev.summarize(2, mr)
+        ok = [r for r in mr if not r.get("error")]
+        lines.append(f"| {model} | {poids[model]} | {len(ok)} sur {len(mr)} | {_fmt(s['Succès tâches'])} | "
+                     f"{_fmt(s['pass^3'])} | {_fmt(s['Chiffres non soutenus'])} | "
+                     f"{sum(r['tokens_in'] + r['tokens_out'] for r in ok) / max(len(ok), 1):.0f} | "
+                     f"{sum(r['latency_s'] for r in ok) / max(len(ok), 1):.1f} |")
+    return ("**Niveau 2, 20 tâches, 3 essais par tâche** (essais en erreur d'infrastructure exclus ; pass^3 sur les "
+            "tâches dont les 3 essais ont abouti)\n\n" + "\n".join(lines))
+
+
 def couts(sums: dict[int, dict]) -> str:
     rows = [r for lv in range(4) for r in _rows(RESULTS_DIR / f"raw_level{lv}.jsonl")]
     tok = sum(r["tokens_in"] + r["tokens_out"] for r in rows)
     usd = sum(config.cost_usd(r["tokens_in"], r["tokens_out"]) for r in rows)
-    per = ", ".join(f"niveau {lv} : {_fmt(s['Coût/req ($)'])} $" for lv, s in sums.items())
-    return (f"Coût par requête avec {config.LLM_MODEL} ({per}). Mesures du tableau : {tok:,} tokens, "
-            f"soit {usd:.2f} $.").replace(",", " ")
+    per = " ; ".join(f"niveau {lv} : {1000 * s['Coût/req ($)']:.2f} $" for lv, s in sums.items())
+    return (f"Coût pour 1 000 requêtes avec {config.LLM_MODEL} : {per}. Toutes les mesures du tableau : "
+            f"{tok:,} tokens, soit {usd:.2f} $.".replace(",", " "))
 
 
 def assemble() -> str:
@@ -175,7 +195,7 @@ def build() -> Path:
             "table_couts": table(sums, COSTS, "Recherche, coût et latence par niveau") if sums else "",
             "table_recherche": table(sums, COSTS, "Recherche, coût et latence par niveau") if sums else "",
             "comparaison": comparaison(), "robustesse": robustesse(), "injection": injection(),
-            "ambigus": ambigus(), "absents": absents(), "couts": couts(sums) if sums else ""}
+            "ambigus": ambigus(), "absents": absents(), "benchmark": benchmark(), "couts": couts(sums) if sums else ""}
     text = assemble()
     for k, v in fill.items():
         text = text.replace("{{" + k + "}}", re.sub(r"(\d)\.(\d)", r"\1,\2", v))  # décimales à la française

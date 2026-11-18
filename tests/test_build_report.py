@@ -25,7 +25,7 @@ def test_parts_use_only_known_placeholders():
     import re
 
     known = {"choix", "protocole", "table_qualite", "table_couts", "table_recherche", "comparaison", "robustesse",
-             "injection", "ambigus", "absents", "couts"}
+             "injection", "ambigus", "absents", "benchmark", "couts"}
     text = br.assemble()
     used = set(re.findall(r"\{\{(\w+)\}\}", text))
     assert used and used <= known

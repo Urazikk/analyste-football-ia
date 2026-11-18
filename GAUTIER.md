@@ -37,6 +37,10 @@ Les sections 1 à 8 plus bas sont faites et restent pour mémoire. Rien de ce qu
 - **Interface** : l'action en attente affiche le rapport en clair avant validation, et disparaît après « Valider » ou « Refuser ».
 - **G2, benchmark** : la reprise des essais `gpt-oss-120b` est lancée depuis la session de Simon (quota Groq de son compte). Vérifie `results/raw_level2.jsonl` sur `main` avant de relancer de ton côté, pour ne pas mesurer deux fois.
 
+### Rapport assemblé le 18 novembre
+
+Tes sections (`docs/rapport/gautier.md`) et ton analyse des échecs (`docs/echecs.md`) sont dans la branche de Simon, puis dans `main` : le rapport complet tient en 4 pages. Pour y arriver, `gautier.md` a été condensé, et le tableau du benchmark est maintenant calculé depuis `results/raw_level2.jsonl` (balise `{{benchmark}}`), donc il se met à jour seul quand le benchmark avance. Relis-le ; tes PR 22 et 23 n'ont plus lieu d'être et peuvent être fermées, comme la PR 20.
+
 ### Règles pour travailler sans se gêner
 
 - Partir de `main` après la fusion de la PR 21. Une branche par sujet, puis une pull request.
