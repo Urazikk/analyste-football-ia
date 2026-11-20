@@ -10,11 +10,11 @@ La boucle est écrite à la main (`src/agent.py`, sans framework) : à chaque pa
 
 {{benchmark}}
 
-Le modèle ouvert échoue surtout en inversant l'affiche demandée (échec 1), cite plus souvent des chiffres absents des outils, et répond bien plus lentement. Le tableau des niveaux utilise gpt-6-luna, imposé par le quota gratuit de Groq (200 000 tokens par jour, une vingtaine de tâches) ; gpt-oss-120b reste la référence ouverte. {{couts}} L'agent coûte 5,5 fois le RAG : un surcoût justifié par les tâches, qu'il est le seul à réussir.
+Le modèle ouvert échoue en inversant l'affiche demandée (échec 1) ou en s'arrêtant sans publier, cite plus souvent des chiffres absents des outils, et répond bien plus lentement. Le tableau des niveaux utilise gpt-6-luna, imposé par le quota gratuit de Groq (200 000 tokens par jour, une vingtaine de tâches) ; gpt-oss-120b reste la référence ouverte. {{couts}} L'agent coûte 5,5 fois le RAG : un surcoût justifié par les tâches, qu'il est le seul à réussir.
 
 ## Analyse de cinq échecs
 
-1. **Affiche inversée** (gpt-oss-120b, 11 de ses 20 essais ratés au 18 novembre) : il recopie l'ordre domicile et extérieur du dernier match renvoyé par `list_matches` au lieu de celui demandé ; les règles métier ne vérifient pas l'ordre. Les 9 autres s'arrêtent sans rien publier, souvent sur la borne de 8 pas.
+1. **Affiche inversée** (gpt-oss-120b, 11 de ses 25 essais ratés) : il recopie l'ordre domicile et extérieur du dernier match renvoyé par `list_matches` au lieu de celui demandé ; les règles métier ne vérifient pas l'ordre. Les 14 autres s'arrêtent sans rien publier, souvent sur la borne de 8 pas.
 2. **Publication sur une affiche choisie par l'agent** (gpt-6-luna) : « le rapport de la Coupe du monde 2026 » devient un rapport États-Unis contre Mexique, toutes les règles passent ; 4 publications non demandées sur 90 essais ambigus au niveau 2, aucune au niveau 3.
 3. **Supposition au lieu d'une question** (gpt-6-luna) : « Qui a gagné le match ? » reçoit le résultat du dernier match des données. Disposer d'outils pousse l'agent à agir avant de demander ; c'est le défaut qui a motivé l'extension.
 4. **Chiffre inventé** (gpt-oss-120b) : « 5-0 contre le Brésil », match absent des sorties d'outils, dans un rapport pourtant compté réussi : le succès vérifie la présence des faits attendus, pas l'absence d'invention.

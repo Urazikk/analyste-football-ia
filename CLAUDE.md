@@ -96,7 +96,7 @@ traces/
 - [x] Rapport assemblé et resserré à 4 pages (18 novembre) : `simon.md` et `gautier.md` (condensé, benchmark recalculé depuis les résultats bruts), `docs/echecs.md` intégré
 - [x] Gautier : second annotateur (accord 30/30, kappa 1,00), fusionné le 16 novembre
 - [x] Traces des mesures archivées, traces de démo, vidéo de démonstration (`docs/video/demo.mp4`, produite par script) : 16 novembre
-- [ ] Benchmark gpt-oss-120b à finir (44 essais sur 60 au 18 novembre, reprise planifiée chaque jour) ; modèle Ollama facultatif
+- [x] Benchmark gpt-oss-120b complet (60 essais, 20 novembre) : succès 0,65, pass^3 0,50 contre 1,00 pour gpt-6-luna ; modèle Ollama non fait (facultatif)
 - [ ] 28 au 30 novembre : assemblage du rapport, vérification depuis un clone neuf, rendu
 
 ## Planning
