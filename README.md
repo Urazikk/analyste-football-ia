@@ -43,6 +43,8 @@ python scripts/eval_prediction.py     # résultats internationaux pour le pronos
 
 Sans ces deux caches, l'agent ne peut pas répondre sur les matchs et les tests qui en dépendent sont sautés.
 
+Le jeu de résultats internationaux (martj42/international_results) est mis à jour en continu : `results/prediction/` a été produit avec les matchs connus au 6 octobre 2026 (1 803 matchs évalués). Relancé plus tard, il inclut les matchs joués depuis, et les scores bougent légèrement (Brier 0,494 au lieu de 0,497 le 27 novembre).
+
 ## Livrables
 
 - Rapport : `docs/rapport/rapport.pdf` (4 pages), régénéré par `python scripts/build_report.py`.
