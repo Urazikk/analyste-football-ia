@@ -2,6 +2,17 @@
 
 Projet du cours Generative AI (ECE, Dr. Issam Falih), parcours Texte. Rendu le 30 novembre 2026.
 
+## Rendu (30 novembre 2026)
+
+| Livrable | Fichier |
+|---|---|
+| Rapport (4 pages) | [`docs/rapport/rapport.pdf`](docs/rapport/rapport.pdf) |
+| Vidéo de démonstration (3 min 08) | [`docs/video/demo.mp4`](docs/video/demo.mp4) |
+| Tableau des niveaux 0 à 3 | [`results/table.md`](results/table.md), reproduit par `python eval.py` (sans clé : depuis les résultats bruts) |
+| Jeu de test et protocole | [`tests.jsonl`](tests.jsonl) (80 cas), [`docs/protocole.md`](docs/protocole.md) |
+| Résultats bruts et traces | [`results/`](results/) (`raw_level0.jsonl` à `raw_level3.jsonl`), [`traces/`](traces/) |
+| Analyse de cinq échecs, choix mesurés | [`docs/echecs.md`](docs/echecs.md), [`docs/decisions.md`](docs/decisions.md) |
+
 Un assistant qui répond aux questions sur le football et prépare des rapports d'avant-match, construit en 4 niveaux comparés sur le même protocole de test :
 
 | Niveau | Fichier | Contenu |
