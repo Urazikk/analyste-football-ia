@@ -57,3 +57,11 @@ def test_unsupported_numbers_accepts_probability_as_percentage():
     outputs = ['{"probabilities": {"home_win": 0.186, "draw": 0.234}, "shots": 9}']
     assert metrics.unsupported_numbers("Victoire 18,6 %, nul 23 %, 9 tirs.", outputs) == []
     assert metrics.unsupported_numbers("Victoire 31 %, 112 kilomètres.", outputs) == [31.0, 112.0]
+
+
+def test_cost_uses_the_model_of_each_row():
+    from src import config
+
+    assert config.cost_usd(1_000_000, 0, "gpt-6-luna") == config.PRICES["gpt-6-luna"][0]
+    assert config.cost_usd(1_000_000, 0, "openai/gpt-oss-120b") == config.PRICES["openai/gpt-oss-120b"][0]
+    assert config.cost_usd(1_000_000, 0, "modele-inconnu") == 0

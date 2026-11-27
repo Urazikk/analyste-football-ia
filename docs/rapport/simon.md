@@ -47,10 +47,3 @@ Les tâches sont déjà à 1,00 au niveau 2 : le gain ne peut se lire que sur ce
 {{robustesse}}
 
 Le RAG est le niveau fragile aux reformulations : la recherche perd des extraits pertinents sur les questions familières ou avec fautes. L'agent les absorbe en reformulant lui-même ses requêtes. {{injection}} Aucune publication n'a lieu sous l'effet d'une consigne injectée.
-
-## Limites de l'évaluation
-
-- Petits effectifs : 10 cas absents et 10 cas ambigus dans le jeu principal, donc un cas vaut 0,10. Les intervalles sont donnés, les comparaisons sont appariées, et les deux critères ont été remesurés sur des jeux complémentaires.
-- L'exactitude est vérifiée par mots clés ; la fidélité par un juge d'une autre famille de modèles, calibré sur 30 annotations humaines dont 10 erreurs injectées assez nettes.
-- Le prompt du plan a été réglé une fois sur les cas absents du jeu principal : ces 10 cas ne sont plus une preuve neutre pour le niveau 3.
-- Les réponses varient d'un essai à l'autre malgré la température 0 : 13 cas ambigus sur 30 ne donnent pas le même résultat à leurs 3 essais au niveau 2.

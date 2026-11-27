@@ -34,10 +34,28 @@ python -m src.rag --list                            # identifiants des morceaux,
 
 Les articles Wikipédia (CC BY-SA 4.0) sont versionnés dans `data/corpus/wiki/` avec leur numéro de révision, pour que l'évaluation soit reproductible. Les lois de l'IFAB ne sont pas redistribuées : `--ifab-download` télécharge le PDF français 2026/27 dans `data/cache/` (non versionné) puis le découpe (une loi par fichier, plus le protocole VAR). `--ifab-pdf` accepte un PDF local. `data/corpus/manifest.json` liste les documents et leur empreinte sha256.
 
+## Données de match
+
+```bash
+python scripts/fetch_statsbomb.py     # matchs et événements StatsBomb des 5 compétitions (2 min, environ 870 Mo, data/cache/)
+python scripts/eval_prediction.py     # résultats internationaux pour le pronostic (téléchargés une fois), puis évaluation
+```
+
+Sans ces deux caches, l'agent ne peut pas répondre sur les matchs et les tests qui en dépendent sont sautés.
+
+## Livrables
+
+- Rapport : `docs/rapport/rapport.pdf` (4 pages), régénéré par `python scripts/build_report.py`.
+- Vidéo de démonstration : `docs/video/demo.mp4` (3 min 08), scénario dans `docs/video.md`.
+- Résultats : `results/table.md` (niveaux 0 à 3), `results/comparaison.md`, résultats bruts `results/raw_level{0..3}.jsonl`, benchmark `results/bench-llm.md`.
+- Analyse de cinq échecs : `docs/echecs.md`. Choix et mesures : `docs/decisions.md`. Protocole : `docs/protocole.md`.
+
 ## Utilisation
 
 ```bash
-python eval.py              # reproduit le tableau de résultats (results/table.md)
+python eval.py --table-only # refait results/table.md depuis les résultats bruts, sans appel à l'API
+python eval.py              # relance les mesures des niveaux 0 à 3 (clé requise), puis refait le tableau
+python eval.py --resume     # ne relance que les cas manquants ou en erreur
 streamlit run src/app.py    # interface
 pytest                      # tests unitaires (sans API)
 python scripts/compare_levels.py   # comparaison appariée des niveaux (sans appel)

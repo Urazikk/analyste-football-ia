@@ -156,7 +156,7 @@ def summarize(level: int, rows: list[dict[str, Any]]) -> dict[str, Any]:
         "Cas": len(first),
         **{name: _mean(xs) for name, xs in lists.items()},
         "Erreurs": sum(1 for r in rows if r.get("error")),
-        "Coût/req ($)": _mean([config.cost_usd(r["tokens_in"], r["tokens_out"]) for r in first]),
+        "Coût/req ($)": _mean([config.cost_usd(r["tokens_in"], r["tokens_out"], r.get("model")) for r in first]),
         "Tokens/req": _mean([r["tokens_in"] + r["tokens_out"] for r in first]),
         "Latence (s)": _mean([r["latency_s"] for r in first]),
         # intervalles de confiance à 95 % (bootstrap, graine fixée), affichés par to_markdown
