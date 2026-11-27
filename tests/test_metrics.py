@@ -65,3 +65,33 @@ def test_cost_uses_the_model_of_each_row():
     assert config.cost_usd(1_000_000, 0, "gpt-6-luna") == config.PRICES["gpt-6-luna"][0]
     assert config.cost_usd(1_000_000, 0, "openai/gpt-oss-120b") == config.PRICES["openai/gpt-oss-120b"][0]
     assert config.cost_usd(1_000_000, 0, "modele-inconnu") == 0
+
+
+def test_error_row_never_replaces_a_measured_row(tmp_path):
+    import eval as ev
+
+    path = tmp_path / "raw.jsonl"
+    good = {"id": "doc-01", "trial": 0, "model": "m", "answer": "onze", "correct": True}
+    ev._write_rows(path, [good])
+    ev._write_rows(path, [{"id": "doc-01", "trial": 0, "model": "m", "answer": "", "correct": False, "error": "401"},
+                          {"id": "doc-02", "trial": 0, "model": "m", "answer": "", "correct": False, "error": "401"}])
+    rows = {r["id"]: r for r in ev._read_rows(path)}
+    assert rows["doc-01"]["answer"] == "onze" and "error" not in rows["doc-01"]
+    assert rows["doc-02"]["error"] == "401"  # un cas jamais mesuré garde son erreur, pour --resume
+
+
+def test_eval_without_key_only_rebuilds_the_table(tmp_path, monkeypatch):
+    import sys
+
+    import eval as ev
+    from src import config
+
+    raw = tmp_path / "raw_level0.jsonl"
+    ev._write_rows(raw, [{"id": "doc-01", "type": "doc", "trial": 0, "model": config.LLM_MODEL, "answer": "onze",
+                          "correct": True, "tokens_in": 10, "tokens_out": 2, "latency_s": 1.0}])
+    before = raw.read_text(encoding="utf-8")
+    monkeypatch.setattr(config, "LLM_API_KEY", "")
+    monkeypatch.setattr(sys, "argv", ["eval.py", "--levels", "0", "--out", str(tmp_path), "--types", "doc"])
+    monkeypatch.setattr(ev, "run_case", lambda *a, **k: (_ for _ in ()).throw(AssertionError("aucun appel attendu")))
+    ev.main()
+    assert raw.read_text(encoding="utf-8") == before and (tmp_path / "table.md").exists()

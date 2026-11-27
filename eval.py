@@ -1,5 +1,7 @@
 """Reproduit le tableau de résultats : python eval.py
 
+Sans LLM_API_KEY, refait results/table.md depuis les résultats bruts (aucun appel) ; avec une clé, remesure.
+
 Options : --levels 0 1 2 3  --trials 3  --trial-types task ambiguous  --limit N  --resume  --table-only  --no-judge
 Sorties : results/raw_level{n}.jsonl (une ligne par cas et essai) et results/table.md.
 """
@@ -57,8 +59,13 @@ def _write_rows(path: Path, rows: list[dict[str, Any]]) -> None:
 
     Sans cela, `--types task` ou `--model qwen...` effaçait les résultats précédents du même niveau.
     """
+    old = _read_rows(path)
+    by_key = {_key(r): r for r in old}
+    # une ligne en erreur (clé absente, quota, réseau) ne remplace jamais une ligne déjà mesurée avec succès
+    rows = [by_key[_key(r)] if r.get("error") and _key(r) in by_key and not by_key[_key(r)].get("error") else r
+            for r in rows]
     new = {_key(r) for r in rows}
-    rows = [r for r in _read_rows(path) if _key(r) not in new] + rows
+    rows = [r for r in old if _key(r) not in new] + rows
     path.write_text("".join(json.dumps(r, ensure_ascii=False, default=str) + "\n" for r in rows), encoding="utf-8")
 
 
@@ -204,6 +211,11 @@ def main() -> None:
         config.LLM_BASE_URL = a.base_url
     if a.extra_corpus:
         config.EXTRA_CORPUS_DIRS = a.extra_corpus
+    if not a.table_only and not config.LLM_API_KEY:
+        # sans clé, rien ne peut être remesuré : on reproduit le tableau depuis les résultats bruts fournis
+        print("LLM_API_KEY absente (.env) : tableau reproduit depuis les résultats bruts de results/, sans appel à l'API.\n"
+              "Pour remesurer, renseigner LLM_API_KEY puis relancer python eval.py.")
+        a.table_only = True
 
     random.seed(SEED)
     tests = [c for c in load_tests(a.tests) if not a.types or c["type"] in a.types][: a.limit]
