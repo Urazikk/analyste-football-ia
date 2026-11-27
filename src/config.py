@@ -43,9 +43,10 @@ PRICE_IN_PER_MTOK: float | None = float(v) if (v := os.getenv("PRICE_IN_PER_MTOK
 PRICE_OUT_PER_MTOK: float | None = float(v) if (v := os.getenv("PRICE_OUT_PER_MTOK", "")) else None
 
 
-def cost_usd(tokens_in: int, tokens_out: int) -> float:
-    """Coût au tarif du modèle courant ; 0 pour un modèle sans tarif connu (ex. Ollama en local)."""
-    p_in, p_out = PRICES.get(LLM_MODEL, (0.0, 0.0))
+def cost_usd(tokens_in: int, tokens_out: int, model: str | None = None) -> float:
+    """Coût au tarif du modèle donné (par défaut le modèle courant) ; 0 pour un modèle sans tarif connu
+    (ex. Ollama en local). Les résultats bruts passent leur propre modèle : un benchmark mélange plusieurs modèles."""
+    p_in, p_out = PRICES.get(model or LLM_MODEL, (0.0, 0.0))
     p_in = p_in if PRICE_IN_PER_MTOK is None else PRICE_IN_PER_MTOK
     p_out = p_out if PRICE_OUT_PER_MTOK is None else PRICE_OUT_PER_MTOK
     return (tokens_in * p_in + tokens_out * p_out) / 1e6

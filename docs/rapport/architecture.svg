@@ -20,7 +20,8 @@
   <text x="75" y="192" text-anchor="middle" class="s">Streamlit, choix 0 à 3</text>
   <rect class="box" x="10" y="240" width="130" height="60" rx="6"/>
   <text x="75" y="265" text-anchor="middle" class="t">eval.py</text>
-  <text x="75" y="282" text-anchor="middle" class="s">80 cas, même protocole</text>
+  <text x="75" y="282" text-anchor="middle" class="s">80 cas, même</text>
+  <text x="75" y="295" text-anchor="middle" class="s">protocole</text>
 
   <!-- Niveaux -->
   <rect class="lvl" x="190" y="20" width="250" height="60" rx="6"/>
@@ -50,13 +51,14 @@
   <path class="ln" d="M140,270 C165,270 165,370 188,370"/>
 
   <!-- Outils de l'agent -->
-  <rect class="box" x="490" y="200" width="200" height="135" rx="6"/>
+  <rect class="box" x="490" y="200" width="200" height="145" rx="6"/>
   <text x="590" y="222" text-anchor="middle" class="t">Outils, classés par effet</text>
   <text x="502" y="244" class="s">read : search_rules, list_matches,</text>
   <text x="502" y="259" class="s">        match_events</text>
-  <text x="502" y="279" class="s">compute : team_stats, team_form, simulate_match</text>
-  <rect class="act" x="500" y="292" width="180" height="34" rx="4"/>
-  <text x="590" y="313" text-anchor="middle" class="s">irreversible : publish_report</text>
+  <text x="502" y="276" class="s">compute : team_stats, team_form,</text>
+  <text x="502" y="289" class="s">        head_to_head, simulate_match</text>
+  <rect class="act" x="500" y="300" width="180" height="34" rx="4"/>
+  <text x="590" y="321" text-anchor="middle" class="s">irreversible : publish_report</text>
   <path class="ln" d="M440,265 L488,265"/>
 
   <!-- Contrôle de l'action -->
@@ -65,7 +67,7 @@
   <text x="837" y="310" text-anchor="middle" class="s">1. règles métier vérifiées par code</text>
   <text x="837" y="326" text-anchor="middle" class="s">2. confirmation de l'utilisateur</text>
   <text x="837" y="342" text-anchor="middle" class="s">3. reports/&lt;affiche&gt;.json, puis PDF</text>
-  <path class="ln" d="M680,309 L728,309"/>
+  <path class="ln" d="M680,317 L728,317"/>
 
   <!-- Données -->
   <rect class="box" x="490" y="100" width="200" height="70" rx="6"/>
@@ -77,14 +79,15 @@
 
   <rect class="box" x="730" y="150" width="215" height="70" rx="6"/>
   <text x="837" y="172" text-anchor="middle" class="t">StatsBomb open data</text>
-  <text x="837" y="190" text-anchor="middle" class="s">Euro 2024, Copa América 2024,</text>
-  <text x="837" y="206" text-anchor="middle" class="s">CdM 2018 et 2022, Euro 2020 : 262 matchs</text>
+  <text x="837" y="190" text-anchor="middle" class="s">Euro 2020 et 2024, Copa América</text>
+  <text x="837" y="206" text-anchor="middle" class="s">2024, CdM 2018 et 2022 : 262 matchs</text>
   <path class="ln" d="M728,215 L692,235"/>
 
   <!-- LLM et mesure -->
   <rect class="box" x="490" y="20" width="200" height="60" rx="6"/>
   <text x="590" y="44" text-anchor="middle" class="t">LLM : gpt-6-luna</text>
-  <text x="590" y="62" text-anchor="middle" class="s">OpenAI ; référence ouverte : gpt-oss-120b</text>
+  <text x="590" y="60" text-anchor="middle" class="s">OpenAI ; référence ouverte :</text>
+  <text x="590" y="73" text-anchor="middle" class="s">gpt-oss-120b (Groq)</text>
   <path class="ln" d="M442,50 L488,50"/>
 
   <rect class="box" x="730" y="20" width="215" height="110" rx="6"/>

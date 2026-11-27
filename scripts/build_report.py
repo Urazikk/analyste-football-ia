@@ -32,12 +32,11 @@ CHOIX = """| Choix | Options comparées | Mesure et résultat |
 | LLM : gpt-6-luna, raisonnement désactivé | gpt-oss-120b (Groq, poids ouverts) | quota gratuit Groq : 20 essais de tâches sur 60 en un jour ; gpt-6-luna : 360 exécutions d'une traite. gpt-oss-120b reste la référence ouverte |
 | Embeddings e5-small, recherche dense, extraits de 600 caractères | bge-m3 ; BM25 et hybride ; 1200 et 2000 caractères | Recall@5 et MRR sur 40 cas et 40 reformulations, bootstrap apparié : aucun écart fiable pour bge-m3 ni l'hybride, plus lents ou fragiles aux fautes |
 | Abstention par le modèle, sans seuil sur le score | seuil sur le cosinus | les scores des cas présents et absents se recouvrent |
-| Juge de fidélité qwen3.8-27b (autre famille) | | 30 annotations, deux annotateurs : accord 30/30, kappa 1,00 |
-| Extension : planification | vérificateur multi-agents, RAG avancé, routage | cas ambigus : seul critère où l'agent fait moins bien que le LLM seul ; chiffres non soutenus à 0,00 une fois la métrique corrigée |"""
+| Juge de fidélité qwen3.8-27b (autre famille) | | 30 annotations, deux annotateurs : accord 30/30, kappa 1,00 |"""
 
 # Lignes de la comparaison appariée gardées dans le rapport (le détail est dans results/comparaison.md)
 KEEP = [("0 → 1", "Abstention"), ("0 → 1", "Exactitude"), ("1 → 2", "Succès tâches"), ("1 → 2", "Exactitude"),
-        ("2 → 3", "Ambigu"), ("2 → 3", "Abstention"), ("2 → 3", "Succès tâches")]
+        ("2 → 3", "Ambigu"), ("2 → 3", "Abstention")]  # 2 → 3 sur les tâches : 1,00 partout, dit dans le texte
 
 
 def _rows(path: Path) -> list[dict]:
@@ -142,7 +141,7 @@ def absents() -> str:
 def couts(sums: dict[int, dict]) -> str:
     rows = [r for lv in range(4) for r in _rows(RESULTS_DIR / f"raw_level{lv}.jsonl")]
     tok = sum(r["tokens_in"] + r["tokens_out"] for r in rows)
-    usd = sum(config.cost_usd(r["tokens_in"], r["tokens_out"]) for r in rows)
+    usd = sum(config.cost_usd(r["tokens_in"], r["tokens_out"], r.get("model")) for r in rows)
     per = ", ".join(f"niveau {lv} : {_fmt(s['Coût/req ($)'])} $" for lv, s in sums.items())
     return (f"Coût par requête avec {config.LLM_MODEL} ({per}). Mesures du tableau : {tok:,} tokens, "
             f"soit {usd:.2f} $.").replace(",", " ")

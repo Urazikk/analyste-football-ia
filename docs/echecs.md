@@ -2,23 +2,23 @@
 
 Sources : `results/raw_level2.jsonl` (lignes étiquetées par modèle, appels d'outils avec arguments et sorties), `results/ambigus/` et `results/raw_level3.jsonl` pour la comparaison avec le niveau 3. Les chemins de trace cités figurent dans le champ `trace_path` de chaque ligne. Les erreurs de quota (429) ne sont pas des échecs du système et sont exclues.
 
-Deux modèles : `gpt-6-luna` (modèle du tableau) et `openai/gpt-oss-120b` (benchmark ouvert, 20 essais de tâches sur 60 au 16 novembre).
+Deux modèles : `gpt-6-luna` (modèle du tableau) et `openai/gpt-oss-120b` (benchmark ouvert : 44 essais de tâches aboutis sur 60, les 16 autres bloqués par le quota gratuit de Groq ; chiffres mis à jour le 27 novembre).
 
 ## Vue d'ensemble
 
 | # | Échec | Modèle | Fréquence mesurée | Détecté par | Corrigé par |
 |---|---|---|---|---|---|
-| 1 | Affiche inversée à la publication | gpt-oss-120b | 7 essais de tâches ratés sur 7 | `check_state` (nom du rapport) | rien au niveau 2 ; piste : règle métier |
+| 1 | Affiche inversée à la publication | gpt-oss-120b | 11 essais ratés sur 20 | `check_state` (nom du rapport) | rien au niveau 2 ; piste : règle métier |
 | 2 | Publication sur une affiche choisie par l'agent | gpt-6-luna | 4 publications non demandées sur 90 essais ambigus | `no_report` / cas ambigus | niveau 3 (0 publication non demandée) |
 | 3 | Supposition au lieu d'une question de précision | gpt-6-luna | Ambigu 0,59 au niveau 2 contre 0,92 au niveau 0 | marqueur `[PRECISION]` | niveau 3 (0,98) |
-| 4 | Chiffres non soutenus dans le rapport | gpt-oss-120b | 3 rapports publiés sur 12 | `metrics.unsupported_numbers` | rien ; le succès de la tâche ne le voit pas |
+| 4 | Chiffres non soutenus dans le rapport | gpt-oss-120b | 9 rapports publiés sur 26 | `metrics.unsupported_numbers` | rien ; le succès de la tâche ne le voit pas |
 | 5 | Boucle de recherche jusqu'au budget de tokens | gpt-oss-120b | 5 cas doc et absents sur 50 (`stop_reason = max_tokens`) | borne `AGENT_MAX_TOKENS` | la borne arrête la boucle, sans réponse |
 
 ## 1. Affiche inversée à la publication (gpt-oss-120b)
 
-- **Cas** : task-01 (essai 2), task-03 (3 essais), task-04 (3 essais).
+- **Cas** : task-01 (essai 2), task-03 (3 essais), task-04 (3 essais), task-10 (essai 2), task-11 (3 essais).
 - **Ce qui se passe** : l'utilisateur demande « Maroc - Croatie ». L'agent appelle `list_matches(team="Maroc")`, qui renvoie le dernier match avec `home_team: Croatia, away_team: Morocco` (match pour la 3e place, 2022). Il publie ensuite avec `home_team="Croatia", away_team="Maroc"`. Le rapport est écrit sous `croatia-vs-morocco.json` au lieu de `morocco-vs-croatia.json`. Même schéma pour « France - Espagne » (publié `Spain`/`France`, ordre de la demi-finale) et « Angleterre - Espagne » (publié `Spain`/`England`, ordre de la finale). Exemple : trace `20261116-125806-94336f`.
-- **Cause** : le modèle recopie l'ordre domicile/extérieur du dernier match renvoyé par l'outil au lieu de l'ordre donné par l'utilisateur. Les 7 échecs de tâches de gpt-oss-120b au 16 novembre ont tous cette cause. Le contenu des rapports est par ailleurs correct (bons chiffres, cités depuis les outils).
+- **Cause** : le modèle recopie l'ordre domicile/extérieur du dernier match renvoyé par l'outil au lieu de l'ordre donné par l'utilisateur. C'est la cause de 11 des 20 essais ratés de gpt-oss-120b ; les 9 autres s'arrêtent à la borne de 8 étapes sans publier (6) ou répondent sans publier (3). Le contenu des rapports est par ailleurs correct (bons chiffres, cités depuis les outils).
 - **Pourquoi les garde-fous ne l'arrêtent pas** : les règles de `publish_report` vérifient que les équipes existent et diffèrent, pas l'ordre demandé. En usage réel, l'utilisateur verrait l'affiche à la confirmation. En évaluation, la confirmation est automatique.
 - **Piste** : faire figurer l'affiche demandée dans la confirmation et la trace, ou ajouter une règle qui compare l'ordre publié à la demande. Cette piste n'est pas mise en œuvre, car les outils sont figés.
 
@@ -39,7 +39,7 @@ Deux modèles : `gpt-6-luna` (modèle du tableau) et `openai/gpt-oss-120b` (benc
 
 ## 4. Chiffres non soutenus dans le rapport (gpt-oss-120b)
 
-- **Cas** : task-02 (essais 0 et 2), task-03 (essai 1). Ce sont 3 rapports publiés sur 12 pour gpt-oss-120b, et 0 pour gpt-6-luna.
+- **Cas** : task-02 (essais 0 et 2), task-03 (essai 1), task-08, task-09, task-10 (2 essais) et task-12 (2 essais). Ce sont 9 rapports publiés sur 26 pour gpt-oss-120b, et 0 pour gpt-6-luna. Les trois premiers sont détaillés ci-dessous.
 - **Ce qui se passe** :
   - task-02, essai 0 : « son premier titre mondial depuis 1986 ». C'est exact, mais ça vient de la mémoire du modèle, pas des outils.
   - task-02, essai 2 : « Argentine : 5‑0 contre le Brésil (Copa América 2024) ». Ce match **n'existe pas** dans les données renvoyées par `team_form`. C'est une invention.

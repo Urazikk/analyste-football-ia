@@ -96,7 +96,8 @@ traces/
 - [x] Simon : sections du rapport (`docs/rapport/simon.md`), assemblage par `scripts/build_report.py` (16 novembre) ; à resserrer avec celles de Gautier pour tenir en 4 pages
 - [x] Gautier : second annotateur (accord 30/30, kappa 1,00), fusionné le 16 novembre
 - [x] Traces des mesures archivées, traces de démo, vidéo de démonstration (`docs/video/demo.mp4`, produite par script) : 16 novembre
-- [ ] Gautier : benchmark de modèles à finir (24 essais gpt-oss-120b sur 60, reprise planifiée ; modèle Ollama), 5 échecs et sections du rapport en brouillon (PR 22 et 23)
+- [x] Gautier : benchmark gpt-oss-120b complet (44 essais aboutis sur 60, quota), 5 échecs (`docs/echecs.md`) et sections du rapport, fusionnés le 27 novembre ; modèle Ollama non mesuré (temps de calcul sans GPU)
+- [x] 27 novembre : rapport assemblé en 4 pages (`docs/rapport/rapport.pdf`), coût calculé au tarif du modèle de chaque ligne, README complété (données de match, livrables)
 - [ ] 28 au 30 novembre : assemblage du rapport, vérification depuis un clone neuf, rendu
 
 ## Planning
