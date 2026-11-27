@@ -55,8 +55,9 @@ Le jeu de résultats internationaux (martj42/international_results) est mis à j
 ## Utilisation
 
 ```bash
-python eval.py --table-only # refait results/table.md depuis les résultats bruts, sans appel à l'API
-python eval.py              # relance les mesures des niveaux 0 à 3 (clé requise), puis refait le tableau
+python eval.py              # sans LLM_API_KEY : refait results/table.md depuis les résultats bruts, sans appel ;
+                            # avec la clé : relance les mesures des niveaux 0 à 3, puis refait le tableau
+python eval.py --table-only # refait le tableau sans appel, même avec une clé
 python eval.py --resume     # ne relance que les cas manquants ou en erreur
 streamlit run src/app.py    # interface
 pytest                      # tests unitaires (sans API)
